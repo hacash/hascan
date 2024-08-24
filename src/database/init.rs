@@ -2,7 +2,7 @@
 
 
 // create tables
-pub fn create_tables(conn: &mut Connection) -> Result<()> {
+pub fn create_tables(conn: &mut Connection) -> DBResult<()> {
     let mut tx = conn.transaction()?;
 
     

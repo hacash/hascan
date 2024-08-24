@@ -8,7 +8,8 @@ pub struct AddressSto {
     pub minted_diamond: u32,
     pub block_reward: u64,
     pub used_fee: f64,
-    // pub timestamp: u64,
+    // timestamp > 0 mean is insert to database
+    pub timestamp: u64,
 }
 
 impl AddressSto {
@@ -23,3 +24,6 @@ impl AddressSto {
 
 
 pub type AddressCache = HashMap<String, AddressSto>; // address => sto
+
+
+

@@ -10,14 +10,39 @@ use hacash::interface::field::*;
 
 
 StructFieldStruct!{ Balance,
-    address: Address
+    addr: Address
     amount: Uint8 // ZHU, SAT, DIAMOND
 }
 
 
-StructFieldList!(BalanceRanking, 
+StructFieldList!(BalanceRankingList, 
     count, Uint1, // MAX 200
     lists, Balance);
+
+
+
+
+//////////////////////////////
+
+
+StructFieldStruct!{ ActiveItem,
+    secnum:  Uint4
+    newadr:  Uint4 // new address
+    txs:     Uint4
+    trszhu:  Uint4
+    trssat:  Uint4
+    trsdia:  Uint4
+    mvzhu:   Uint8 // HAC: ZHU
+    mvsat:   Uint8 // SAT
+    mvdia:   Uint3 // DIAMOND
+}
+
+
+
+StructFieldList!(ChainActive, 
+    count, Uint1, // MAX 200
+    lists, ActiveItem);
+
 
 
 
@@ -31,16 +56,13 @@ StructFieldStruct!{ ScanSettings,
     auto_inc_address_id: Uint5 // next addr database id
     _1: Fixed3
     _2: Fixed8
-    _3: Fixed8
-    _4: Fixed8
-    _5: Fixed16
-    _6: Fixed16
-    _7: Fixed16
 
-    // ranking
-    rank_zhu: BalanceRanking // Hacash  - zhu
-    rank_sat: BalanceRanking // Bitcoin - sat
-    rank_dia: BalanceRanking // Diamond - one
+    // chain active
+    chain_active: ChainActive
+    // ranking 100
+    rank_zhu: BalanceRankingList // Hacash  - zhu
+    rank_sat: BalanceRankingList // Bitcoin - sat
+    rank_dia: BalanceRankingList // Diamond - one
     
 
     _11: Fixed2
@@ -48,14 +70,6 @@ StructFieldStruct!{ ScanSettings,
     _13: Fixed4
     _14: Fixed8
 
-    _16: Fixed16
-
-    _27: Fixed32
-    _28: Fixed32
-    _29: Fixed32
-    _30: Fixed32
-    _31: Fixed32
-    _32: Fixed32
 }
 
 
