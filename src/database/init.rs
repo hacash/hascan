@@ -35,13 +35,12 @@ pub fn create_tables(conn: &mut Connection) -> DBResult<()> {
             from_aid          INTEGER NOT NULL,
             to_aid            INTEGER NOT NULL,
             coin_type         INTEGER NOT NULL,
-            coin_amt          INTEGER NOT NULL,
-            timestamp         INTEGER NOT NULL
+            coin_amt          INTEGER NOT NULL
         )", ()
     )?;
 
     tx.execute(
-        "CREATE INDEX IF NOT EXISTS acc_id on coin_transfer (from_id, to_id)", ()
+        "CREATE INDEX IF NOT EXISTS acc_id on coin_transfer (from_aid, to_aid)", ()
     )?;
 
 
@@ -56,8 +55,7 @@ pub fn create_tables(conn: &mut Connection) -> DBResult<()> {
             aid1              INTEGER NOT NULL,
             aid2              INTEGER NOT NULL,
             tarid             BLOB NOT NULL,
-            data              TEXT NOT NULL,
-            timestamp         INTEGER NOT NULL
+            data              TEXT NOT NULL
         )", ()
     )?;
 

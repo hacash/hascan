@@ -5,8 +5,17 @@
 /**
 * return: is new, addr id
 */
+
+
 pub fn record_addr_id(dbtx: &mut DBTransaction, adrs: &mut AddressCache, setting: &mut ScanSettings, 
-    address: String, blkts: u64) -> DBResult<(bool, i64)> {
+    adrobj: &Address, blkts: u64) -> DBResult<u64> {
+        let (_, aid) = record_addr_id_ex(dbtx, adrs, setting, adrobj, blkts)?;
+        Ok(aid as u64)
+}
+
+pub fn record_addr_id_ex(dbtx: &mut DBTransaction, adrs: &mut AddressCache, setting: &mut ScanSettings, 
+    adrobj: &Address, blkts: u64) -> DBResult<(bool, i64)> {
+    let address = adrobj.readable();
     let new = true;
     let old = false;
     if let Some(adr) = adrs.get(&address) {

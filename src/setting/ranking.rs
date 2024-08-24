@@ -48,10 +48,11 @@ fn update_one_rank(rklist: &mut Vec<Balance>, adr: &Address, namt: u64) -> usize
     rklist.retain(|x|x.addr==*adr);
     // insert
     let mut istid = 0;
-    let mut k = rklist.len()-1;
+    let mut k = rklist.len() as i64 - 1;
     while k>=0 {
-        if namt <= *rklist[k].amount {
-            istid = k + 1;
+        let i = k as usize;
+        if namt <= *rklist[i].amount {
+            istid = i + 1;
             break
         }
         k -= 1;
