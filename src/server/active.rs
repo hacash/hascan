@@ -22,10 +22,10 @@ async fn chain_active(State(ctx): State<ApiCtx>, q: Query<Q8237>) -> impl IntoRe
             a.newadr.uint(), // new address
             a.txs.uint(),
             a.trszhu.uint(),
-            a.trssat.uint(),
-            a.trsdia.uint(),
             a.mvzhu.uint() as f64 / 100000000.0, // mei
+            a.trssat.uint(),
             a.mvsat.uint() as f64 / 100000000.0, // btc
+            a.trsdia.uint(),
             a.mvdia.uint(), // DIAMOND
         ));
     }

@@ -3,9 +3,12 @@ pub fn routes(mut ctx: ApiCtx) -> Router {
 
     let lrt = Router::new().route("/", get(console))
     
-    // route paths
-    .route("/ranking/top100", get(ranking_top100))
-    .route("/chain/active", get(chain_active))
+    // query paths
+    .route("/query/ranking/top100", get(ranking_top100))
+    .route("/query/chain/active", get(chain_active))
+    .route("/query/coin/transfer", get(coin_transfer))
+    .route("/query/action/operate", get(coin_transfer))
+    
     ;
 
     // ok
