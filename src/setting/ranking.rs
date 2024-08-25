@@ -29,7 +29,6 @@ pub fn update_ranking(setting: &mut ScanSettings, adrs: &AddressCache, state: &C
             }
             setting.$p.as_mut().truncate(zl);
             setting.$p.count = Uint1::from(zl as u8);
-            setting.$p.count = Uint1::from(zl as u8);
         } }
     }
     truncate!(rank_zhu);
@@ -42,14 +41,21 @@ pub fn update_ranking(setting: &mut ScanSettings, adrs: &AddressCache, state: &C
 }
 
 
-fn update_one_rank(rklist: &mut Vec<Balance>, adr: &Address, namt: u64) -> usize {
+fn update_one_rank(rklist: &mut Vec<Balance>, adr: &Address, namt: u64) {
     let nbls = Balance{addr: adr.clone(), amount: Uint8::from(namt)};
     // delete old
-    rklist.retain(|x|x.addr==*adr);
+    rklist.retain(|x|x.addr!=*adr);
+    if namt == 0 {
+        return // do nother
+    }
     // insert
+    if rklist.len() == 0 {
+        rklist.push(nbls);
+        return
+    }
     let mut istid = 0;
     let mut k = rklist.len() as i64 - 1;
-    while k>=0 {
+    while k >= 0 {
         let i = k as usize;
         if namt <= *rklist[i].amount {
             istid = i + 1;
@@ -57,11 +63,14 @@ fn update_one_rank(rklist: &mut Vec<Balance>, adr: &Address, namt: u64) -> usize
         }
         k -= 1;
     }
+    // print!("update_one_rank {} {} {} {}, ", adr.readable(), rklist.len(), istid, namt);
     if istid == rklist.len() {
         rklist.push(nbls);
     }else{
         rklist.insert(istid, nbls);
     }
+
+    // println!("after len = {}", rklist.len());
     // ok
-    rklist.len()
+    
 }

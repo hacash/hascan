@@ -38,7 +38,18 @@ fn do_scan(scaner: &BlkScaner, setting: &mut ScanSettings, dbconn: &mut Connecti
     err!(dbtx.commit());
     // ranking
     update_ranking(setting, adrary, &csta)?;
+    update_chain_active(setting, adrary, hei)?;
     // save settings
-    super::save_setting(setting);
+    let stsvt = scaner.cnf.delaysavesetting as u64;
+    if stsvt == 0 {
+        super::save_setting(setting); // save it now
+    }else{
+        let nowt = hacash::sys::curtimes();
+        let mut prvt = scaner.prevsavetime.lock().unwrap();
+        if nowt - *prvt > stsvt {
+            super::save_setting(setting); // save it now
+            *prvt = nowt;
+        }
+    }
     Ok(())
 }

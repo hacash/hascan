@@ -6,7 +6,6 @@ pub fn record_coin_transfer(dbtx: &mut DBTransaction, adrs: &mut AddressCache,
     trs: &dyn TransactionRead, setting: &mut ScanSettings, height: u64, blkts: u64,
 ) -> DBResult<()> {
 
-    let active = record_current_active(setting, height);
     let maddr = trs.address().unwrap();
     let aptrs = trs.addrlist();
     let main_aid = record_addr_id(dbtx, adrs, setting, &maddr, blkts)?;
@@ -32,6 +31,7 @@ fn record_one_action(dbtx: &mut DBTransaction, adrs: &mut AddressCache, aptrs: &
         (height,kind,aid1,aid2,tarid,data) VALUES 
         (?1, ?2, ?3, ?4, ?5, ?6)";
 
+
     // target addr
     let kid = act.kind();
 
@@ -42,9 +42,16 @@ fn record_one_action(dbtx: &mut DBTransaction, adrs: &mut AddressCache, aptrs: &
         let action = HacToTransfer::must(&act.serialize());
         let to_addr = action.to.real(aptrs).unwrap();
         let to_aid = record_addr_id(dbtx, adrs, setting, &to_addr, blkts)?;
-        let zhu = action.amt.to_zhu_unsafe() as u64;
+        let mut zhu = action.amt.to_zhu_unsafe();
+        if zhu > 100_0000_00000000u64 as f64 {
+            return Ok(()) // ingore super big amt, bugs
+        }
+        let zhu = zhu as u64;
         let mut stmt = dbtx.prepare_cached(sqlirt)?;
         stmt.insert((height, main_aid, to_aid, COINTY_ZHU, zhu))?;
+        let active = record_current_active(setting, height);
+        active.trszhu += 1;
+        active.mvzhu += zhu;
 
     } else if kid == HacFromTransfer::kid() {
 
@@ -54,6 +61,9 @@ fn record_one_action(dbtx: &mut DBTransaction, adrs: &mut AddressCache, aptrs: &
         let zhu = action.amt.to_zhu_unsafe() as u64;
         let mut stmt = dbtx.prepare_cached(sqlirt)?;
         stmt.insert((height, from_aid, main_aid, COINTY_ZHU, zhu))?;
+        let active = record_current_active(setting, height);
+        active.trszhu += 1;
+        active.mvzhu += zhu;
 
     } else if kid == HacFromToTransfer::kid() {
 
@@ -65,6 +75,9 @@ fn record_one_action(dbtx: &mut DBTransaction, adrs: &mut AddressCache, aptrs: &
         let zhu = action.amt.to_zhu_unsafe() as u64;
         let mut stmt = dbtx.prepare_cached(sqlirt)?;
         stmt.insert((height, from_aid, to_aid, COINTY_ZHU, zhu))?;
+        let active = record_current_active(setting, height);
+        active.trszhu += 1;
+        active.mvzhu += zhu;
 
     /******** Satoshi ********/
 
@@ -76,6 +89,9 @@ fn record_one_action(dbtx: &mut DBTransaction, adrs: &mut AddressCache, aptrs: &
         let sat = action.satoshi.uint() as u64;
         let mut stmt = dbtx.prepare_cached(sqlirt)?;
         stmt.insert((height, main_aid, to_aid, COINTY_SAT, sat))?;
+        let active = record_current_active(setting, height);
+        active.trssat += 1;
+        active.mvsat += sat;
 
     } else if kid == SatoshiFromTransfer::kid() {
 
@@ -85,6 +101,9 @@ fn record_one_action(dbtx: &mut DBTransaction, adrs: &mut AddressCache, aptrs: &
         let sat = action.satoshi.uint() as u64;
         let mut stmt = dbtx.prepare_cached(sqlirt)?;
         stmt.insert((height, from_aid, main_aid, COINTY_SAT, sat))?;
+        let active = record_current_active(setting, height);
+        active.trssat += 1;
+        active.mvsat += sat;
 
     } else if kid == SatoshiFromToTransfer::kid() {
 
@@ -96,6 +115,9 @@ fn record_one_action(dbtx: &mut DBTransaction, adrs: &mut AddressCache, aptrs: &
         let sat = action.satoshi.uint() as u64;
         let mut stmt = dbtx.prepare_cached(sqlirt)?;
         stmt.insert((height, from_aid, to_aid, COINTY_SAT, sat))?;
+        let active = record_current_active(setting, height);
+        active.trssat += 1;
+        active.mvsat += sat;
     
     /******** Diamond ********/
 
@@ -104,8 +126,12 @@ fn record_one_action(dbtx: &mut DBTransaction, adrs: &mut AddressCache, aptrs: &
         let action = DiamondSingleTransfer::must(&act.serialize());
         let to_addr = action.to.real(aptrs).unwrap();
         let to_aid = record_addr_id(dbtx, adrs, setting, &to_addr, blkts)?;
+        let dia = 1 as u64; // only one
         let mut stmt = dbtx.prepare_cached(sqlirt)?;
-        stmt.insert((height, main_aid, to_aid, COINTY_DIA, 1))?;
+        stmt.insert((height, main_aid, to_aid, COINTY_DIA, dia))?;
+        let active = record_current_active(setting, height);
+        active.trsdia += 1;
+        active.mvdia += dia;
 
     } else if kid == DiamondFromTransfer::kid() {
 
@@ -115,6 +141,9 @@ fn record_one_action(dbtx: &mut DBTransaction, adrs: &mut AddressCache, aptrs: &
         let dia = action.diamonds.count().uint() as u64;
         let mut stmt = dbtx.prepare_cached(sqlirt)?;
         stmt.insert((height, from_aid, main_aid, COINTY_DIA, dia))?;
+        let active = record_current_active(setting, height);
+        active.trsdia += 1;
+        active.mvdia += dia;
 
     } else if kid == DiamondToTransfer::kid() {
 
@@ -124,6 +153,9 @@ fn record_one_action(dbtx: &mut DBTransaction, adrs: &mut AddressCache, aptrs: &
         let dia = action.diamonds.count().uint() as u64;
         let mut stmt = dbtx.prepare_cached(sqlirt)?;
         stmt.insert((height, main_aid, to_aid, COINTY_DIA, dia))?;
+        let active = record_current_active(setting, height);
+        active.trsdia += 1;
+        active.mvdia += dia;
 
     } else if kid == DiamondFromToTransfer::kid() {
 
@@ -135,6 +167,9 @@ fn record_one_action(dbtx: &mut DBTransaction, adrs: &mut AddressCache, aptrs: &
         let dia = action.diamonds.count().uint() as u64;
         let mut stmt = dbtx.prepare_cached(sqlirt)?;
         stmt.insert((height, from_aid, to_aid, COINTY_DIA, dia))?;
+        let active = record_current_active(setting, height);
+        active.trsdia += 1;
+        active.mvdia += dia;
 
 
     /******** Channel Operate ********/

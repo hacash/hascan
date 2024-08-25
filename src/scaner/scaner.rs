@@ -1,18 +1,34 @@
 
 
+pub struct RollStuff {
+    blkpkg: Arc<dyn BlockPkg>, 
+    sta: Arc<dyn State>, 
+    sto: Arc<dyn Store>
+}
+
+
+/////////////////////////////////////
+
 
 pub struct BlkScaner {
     pub cnf: BlkScrConfig,
-    dbconn: Mutex<Connection>,
-    setting: Mutex<ScanSettings>,
+    dbconn: Arc<Mutex<Connection>>,
+    setting: Arc<Mutex<ScanSettings>>,
+    // 
+    rlsftx: Mutex<Option<SyncSender<RollStuff>>>,
+    // rlsfrx: Mutex<Option<Receiver<RollStuff>>>,
+    // opt
+    prevsavetime: Mutex<u64>,
 }
 
 impl BlkScaner {
     pub fn new(setting: ScanSettings, dbconn: Connection) -> BlkScaner {
         BlkScaner{
             cnf: BlkScrConfig::default(),
-            dbconn: dbconn.into(),
-            setting: setting.into(),
+            dbconn: Arc::new(Mutex::new(dbconn)),
+            setting: Arc::new(Mutex::new(setting)),
+            rlsftx: None.into(),
+            prevsavetime: 0.into(),
         }
     }
 }
@@ -21,29 +37,26 @@ impl BlkScaner {
 impl BlockScaner for BlkScaner {
 
     fn init(&mut self, ini: &IniObj) -> RetErr {
-        self.cnf = BlkScrConfig::new(ini)?;
-        Ok(())
+        self.do_init(ini)
     } 
 
     // another thread
     fn start(&self) -> RetErr {
-        Ok(())
+        self.do_start()
+    }
+
+    // another thread
+    fn serve(&self) -> RetErr {
+        self.do_serve()
     }
 
     fn roll(&self, blkpkg: Arc<dyn BlockPkg>,  sta: Arc<dyn State>, sto: Arc<dyn Store> ) -> RetErr {
-        let mut dbc = self.dbconn.lock().unwrap();
-        let mut set = self.setting.lock().unwrap();
-        let block = blkpkg.objc().as_read();
-        let csto = CoreStoreDisk::wrap(sto.as_ref());
-        let csta = CoreStateDisk::wrap(sta.as_ref());
-        let msto = MintStoreDisk::wrap(sto.as_ref());
-        let msta = MintStateDisk::wrap(sta.as_ref());
-        let mut adrs = AddressCache::new();
-        do_scan(self, &mut *set, &mut *dbc, 
-            &mut adrs,
-            block, csto, csta, msto, msta,
-        )
+        let stuff = RollStuff{blkpkg, sta, sto};
+        self.rlsftx.lock().unwrap().as_mut().unwrap()
+            .send(stuff).map_err(|e|e.to_string())
     }
+
+
 
 }
 

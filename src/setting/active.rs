@@ -1,10 +1,8 @@
 
 /**
 *
-*
-pub fn update_chain_active(setting: &mut ScanSettings, height: u64,
-    adrs: &AddressCache, zhu: u64, sat: u64, dia: u32,
-) {
+*/
+pub fn update_chain_active(setting: &mut ScanSettings, adrs: &AddressCache, height: u64) -> RetErr {
     let secc = record_current_active(setting, height);
     // update
     // new addr
@@ -15,12 +13,8 @@ pub fn update_chain_active(setting: &mut ScanSettings, height: u64,
         }
     }
     secc.newadr += newadr;
-    // zhu sat dia
-    secc.swzhu += zhu;
-    secc.swsat += sat;
-    secc.swdia += dia;
+    Ok(())
 }
-*/
 
 
 pub fn record_current_active<'a>(setting: &'a mut ScanSettings, height: u64) -> &'a mut ActiveItem {

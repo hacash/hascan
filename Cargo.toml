@@ -6,15 +6,19 @@ edition = "2021"
 
 
 [dependencies]
+tokio = { version = "1.37.0", features = ["rt", "rt-multi-thread", "sync", "time", "io-util", "net", "macros"] }
+axum = "0.7.5"
+serde = "1.0.199"
+serde_json = "1.0.116"
 rusqlite = "0.32.1"
 # hacash = { git = "https://github.com/hacash/rust", package = "hacash"}
 hacash = { path = "../rust", package = "hacash"}
 
 
-[profile.release]
-opt-level = 3       # Optimize for size.
-lto = true          # Enable Link Time Optimization
-codegen-units = 1   # Reduce number of codegen units to increase optimizations.
-panic = 'abort'     # Abort on panic
-strip = true        # Strip symbols from binary
+# [profile.release]
+# opt-level = 3       # Optimize for size.
+# lto = true          # Enable Link Time Optimization
+# codegen-units = 1   # Reduce number of codegen units to increase optimizations.
+# panic = 'abort'     # Abort on panic
+# strip = true        # Strip symbols from binary
 

@@ -17,6 +17,7 @@ extern crate hacash;
 
 mod database;
 mod setting;
+mod server;
 mod scaner;
 
 

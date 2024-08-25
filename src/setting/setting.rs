@@ -39,7 +39,7 @@ StructFieldStruct!{ ActiveItem,
 
 
 
-StructFieldList!(ChainActive, 
+StructFieldList!(ChainActiveList, 
     count, Uint1, // MAX 200
     lists, ActiveItem);
 
@@ -58,7 +58,7 @@ StructFieldStruct!{ ScanSettings,
     _2: Fixed8
 
     // chain active
-    chain_active: ChainActive
+    chain_active: ChainActiveList
     // ranking 100
     rank_zhu: BalanceRankingList // Hacash  - zhu
     rank_sat: BalanceRankingList // Bitcoin - sat

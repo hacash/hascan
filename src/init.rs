@@ -37,7 +37,6 @@ pub fn init_db() -> Ret<(ScanSettings, Connection)> {
 
 pub fn save_setting(setting: &ScanSettings) -> RetErr {
     let stfn = DATADIR.to_owned() + "/settings.dat";
-    fs::write(stfn, setting.serialize());
-    Ok(())
+    fs::write(stfn, setting.serialize()).map_err(|e|e.to_string())
 }
 
