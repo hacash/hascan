@@ -15,9 +15,25 @@ pub fn routes(mut ctx: ApiCtx) -> Router {
 
 
 async fn console(State(ctx): State<ApiCtx>, req: Request) -> impl IntoResponse {
+    let mut svtips = "";
+    if ctx.cnf.delaysavesetting > 0 {
+        crate::save_setting(&ctx.setting.lock().unwrap()).unwrap();
+        svtips = "<p>Save settings successfully!<p>"
+    }
+
+    /*/ test print
+    let mut resstr = "".to_owned();
+    for (dia, blkt) in ctx.diamovedate.lock().unwrap().iter() {
+        resstr += format!("{},{}\n", dia.readable(), timefmt(*blkt, "%Y%m%d")).as_str();
+    }
+    return (HeaderMap::new(), resstr);
+    */
+
     // render
-    format!(r#"<html><head><title>Hacash Hascan console</title></head><body>
+    ( html_headers(), format!(r#"<html><head><title>Hacash Hascan console</title></head><body>
         <h3>Hacash Hascan console</h3>
-        </body></html>"#
-    )
+        {}
+        </body></html>"#,
+        svtips,
+    ))
 }

@@ -7,6 +7,7 @@ impl BlkScaner {
         let cnf = self.cnf.clone();
         let dbconn = self.dbconn.clone();
         let setting = self.setting.clone();
+        // let diamovedate = self.diamovedate.clone();
         // server listen loop with multi thread
         let rt = hacash::server::new_tokio_rt( true );
         rt.block_on(async move {

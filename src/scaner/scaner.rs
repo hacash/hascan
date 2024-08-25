@@ -19,6 +19,7 @@ pub struct BlkScaner {
     // rlsfrx: Mutex<Option<Receiver<RollStuff>>>,
     // opt
     prevsavetime: Mutex<u64>,
+    // diamovedate: Arc<Mutex<HashMap<DiamondName, u64>>>,
 }
 
 impl BlkScaner {
@@ -29,6 +30,7 @@ impl BlkScaner {
             setting: Arc::new(Mutex::new(setting)),
             rlsftx: None.into(),
             prevsavetime: 0.into(),
+            // diamovedate: Arc::default(),
         }
     }
 }

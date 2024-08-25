@@ -27,6 +27,7 @@ impl BlkScaner {
             // call toll
             let mut dbc = self.dbconn.lock().unwrap();
             let mut set = self.setting.lock().unwrap();
+            // let mut dmvd = self.diamovedate.lock().unwrap();
             let block = stuff.blkpkg.objc().as_read();
             let csto = CoreStoreDisk::wrap(stuff.sto.as_ref());
             let csta = CoreStateDisk::wrap(stuff.sta.as_ref());
@@ -34,8 +35,7 @@ impl BlkScaner {
             let msta = MintStateDisk::wrap(stuff.sta.as_ref());
             let mut adrs = AddressCache::new();
             do_scan(self, &mut *set, &mut *dbc, 
-                &mut adrs,
-                block, csto, csta, msto, msta,
+                &mut adrs, block, csto, csta, msto, msta,
             )?;
         }
         errf!("cannot end of start loop")

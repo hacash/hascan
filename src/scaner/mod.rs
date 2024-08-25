@@ -1,3 +1,4 @@
+use std::collections::{ HashMap };
 use std::sync::{ Arc, Mutex };
 use std::sync::mpsc::{ sync_channel,  Receiver, SyncSender };
 
@@ -10,6 +11,7 @@ use hacash::interface::extend::*;
 use hacash::interface::chain::*;
 use hacash::interface::protocol::*;
 
+use hacash::core::field::*;
 use hacash::core::state::*;
 use hacash::mint::state::*;
 

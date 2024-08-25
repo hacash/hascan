@@ -4,6 +4,7 @@
 */
 pub fn record_coin_transfer(dbtx: &mut DBTransaction, adrs: &mut AddressCache, 
     trs: &dyn TransactionRead, setting: &mut ScanSettings, height: u64, blkts: u64,
+    // diamovedate: &mut HashMap<DiamondName, u64>,
 ) -> DBResult<()> {
 
     let maddr = trs.address().unwrap();
@@ -21,6 +22,7 @@ pub fn record_coin_transfer(dbtx: &mut DBTransaction, adrs: &mut AddressCache,
 fn record_one_action(dbtx: &mut DBTransaction, adrs: &mut AddressCache, aptrs: &AddrOrList,
     act: &dyn Action, setting: &mut ScanSettings, maddr: &Address, main_aid: u64, 
     height: u64, blkts: u64,
+    // diamovedate: &mut HashMap<DiamondName, u64>,
 ) -> DBResult<()> {
 
     const sqlirt: &str = "INSERT INTO coin_transfer 
@@ -133,6 +135,9 @@ fn record_one_action(dbtx: &mut DBTransaction, adrs: &mut AddressCache, aptrs: &
         active.trsdia += 1;
         active.mvdia += dia;
 
+        // diamovedate.insert(action.diamond, blkts);
+
+
     } else if kid == DiamondFromTransfer::kid() {
 
         let action = DiamondFromTransfer::must(&act.serialize());
@@ -145,6 +150,10 @@ fn record_one_action(dbtx: &mut DBTransaction, adrs: &mut AddressCache, aptrs: &
         active.trsdia += 1;
         active.mvdia += dia;
 
+        // for dia in action.diamonds.list() {
+        //     diamovedate.insert(*dia, blkts);
+        // }
+
     } else if kid == DiamondToTransfer::kid() {
 
         let action = DiamondToTransfer::must(&act.serialize());
@@ -156,6 +165,11 @@ fn record_one_action(dbtx: &mut DBTransaction, adrs: &mut AddressCache, aptrs: &
         let active = record_current_active(setting, height);
         active.trsdia += 1;
         active.mvdia += dia;
+
+        // for dia in action.diamonds.list() {
+        //     diamovedate.insert(*dia, blkts);
+        // }
+
 
     } else if kid == DiamondFromToTransfer::kid() {
 
@@ -170,6 +184,11 @@ fn record_one_action(dbtx: &mut DBTransaction, adrs: &mut AddressCache, aptrs: &
         let active = record_current_active(setting, height);
         active.trsdia += 1;
         active.mvdia += dia;
+
+        // for dia in action.diamonds.list() {
+        //     diamovedate.insert(*dia, blkts);
+        // }
+
 
 
     /******** Channel Operate ********/

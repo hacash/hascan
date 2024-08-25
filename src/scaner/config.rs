@@ -15,7 +15,7 @@ impl BlkScrConfig {
         let sec = &ini_section(ini, "hascan"); // default = root
         let synchronous = ini_must(sec, "synchronous", "NORMAL");
         let delaysavesetting = ini_must_u64(sec, "delaysavesetting", 0);
-        let listen = ini_must_u64(sec, "listen", 8086) as u16;
+        let listen = ini_must_u64(sec, "listen", 8087) as u16;
 
 
         let cnf = BlkScrConfig {

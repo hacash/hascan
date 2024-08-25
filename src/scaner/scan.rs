@@ -3,6 +3,7 @@
 fn do_scan(scaner: &BlkScaner, setting: &mut ScanSettings, dbconn: &mut Connection, 
     adrary: &mut AddressCache,
     block: &dyn BlockRead, csto: CoreStoreDisk, csta: CoreStateDisk, msto: MintStoreDisk, msta: MintStateDisk,
+    // diamovedate: &mut HashMap<DiamondName, u64>,
 ) -> RetErr {
     macro_rules! err {
         ($v: expr) => {
