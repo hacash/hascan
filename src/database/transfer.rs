@@ -42,13 +42,16 @@ fn record_one_action(dbtx: &mut DBTransaction, adrs: &mut AddressCache, aptrs: &
     if kid == HacToTransfer::kid() {
 
         let action = HacToTransfer::must(&act.serialize());
-        let to_addr = action.to.real(aptrs).unwrap();
-        let to_aid = record_addr_id(dbtx, adrs, setting, &to_addr, blkts)?;
         let mut zhu = action.amt.to_zhu_unsafe();
         if zhu > 100_0000_00000000u64 as f64 {
             return Ok(()) // ingore super big amt, bugs
         }
         let zhu = zhu as u64;
+        if zhu == 0 {
+            return Ok(()) // ingore < 1 zhu amt
+        }
+        let to_addr = action.to.real(aptrs).unwrap();
+        let to_aid = record_addr_id(dbtx, adrs, setting, &to_addr, blkts)?;
         let mut stmt = dbtx.prepare_cached(sqlirt)?;
         stmt.insert((height, main_aid, to_aid, COINTY_ZHU, zhu))?;
         let active = record_current_active(setting, height);
@@ -58,9 +61,12 @@ fn record_one_action(dbtx: &mut DBTransaction, adrs: &mut AddressCache, aptrs: &
     } else if kid == HacFromTransfer::kid() {
 
         let action = HacFromTransfer::must(&act.serialize());
+        let zhu = action.amt.to_zhu_unsafe() as u64;
+        if zhu == 0 {
+            return Ok(()) // ingore < 1 zhu amt
+        }
         let from_addr = action.from.real(aptrs).unwrap();
         let from_aid = record_addr_id(dbtx, adrs, setting, &from_addr, blkts)?;
-        let zhu = action.amt.to_zhu_unsafe() as u64;
         let mut stmt = dbtx.prepare_cached(sqlirt)?;
         stmt.insert((height, from_aid, main_aid, COINTY_ZHU, zhu))?;
         let active = record_current_active(setting, height);
@@ -70,11 +76,14 @@ fn record_one_action(dbtx: &mut DBTransaction, adrs: &mut AddressCache, aptrs: &
     } else if kid == HacFromToTransfer::kid() {
 
         let action = HacFromToTransfer::must(&act.serialize());
+        let zhu = action.amt.to_zhu_unsafe() as u64;
+        if zhu == 0 {
+            return Ok(()) // ingore < 1 zhu amt
+        }
         let from_addr = action.from.real(aptrs).unwrap();
         let to_addr = action.to.real(aptrs).unwrap();
         let from_aid = record_addr_id(dbtx, adrs, setting, &from_addr, blkts)?;
         let to_aid = record_addr_id(dbtx, adrs, setting, &to_addr, blkts)?;
-        let zhu = action.amt.to_zhu_unsafe() as u64;
         let mut stmt = dbtx.prepare_cached(sqlirt)?;
         stmt.insert((height, from_aid, to_aid, COINTY_ZHU, zhu))?;
         let active = record_current_active(setting, height);
