@@ -33,5 +33,6 @@ include!("active.rs");
 include!("ranking.rs");
 include!("cointrs.rs");
 include!("fiopts.rs");
+include!("address.rs");
 include!("server.rs");
 
