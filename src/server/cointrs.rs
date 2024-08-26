@@ -77,7 +77,7 @@ fn query_coin_transfer(ctx: ApiCtx, q: Query<Q4396>) -> DBResult<JsonObject> {
         };
         adrcond = format!("from_aid = {} OR to_aid = {}", both_aid, both_aid);
     } else {
-        adrcond = format!("id > 0");
+        adrcond = format!("2 > 0");
 
     }
 

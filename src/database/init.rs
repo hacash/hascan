@@ -44,11 +44,11 @@ pub fn create_tables(conn: &mut Connection) -> DBResult<()> {
     )?;
 
 
-    /* operate_action */
+    /* defi_operate */
 
 
     tx.execute(
-        "CREATE TABLE IF NOT EXISTS `operate_action` (
+        "CREATE TABLE IF NOT EXISTS `defi_operate` (
             id                INTEGER PRIMARY KEY AUTOINCREMENT,
             height            INTEGER NOT NULL,
             kind              INTEGER NOT NULL,
@@ -60,7 +60,7 @@ pub fn create_tables(conn: &mut Connection) -> DBResult<()> {
     )?;
 
     tx.execute(
-        "CREATE INDEX IF NOT EXISTS acc2_id on operate_action (aid1, aid2)", ()
+        "CREATE INDEX IF NOT EXISTS acc2_id on defi_operate (aid1, aid2)", ()
     )?;
 
 

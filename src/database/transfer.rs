@@ -9,7 +9,8 @@ pub fn record_coin_transfer(dbtx: &mut DBTransaction, adrs: &mut AddressCache,
 
     let maddr = trs.address().unwrap();
     let aptrs = trs.addrlist();
-    let main_aid = record_addr_id(dbtx, adrs, setting, &maddr, blkts)?;
+    let (main_aid, main_acc) = record_addr_as_mut(dbtx, adrs, setting, &maddr, blkts)?;
+    main_acc.used_fee += trs.fee().to_mei_unsafe();
     let actions = trs.actions();  
     for act in actions {
         record_one_action(dbtx, adrs, aptrs, act.as_ref(), setting, &maddr, 
@@ -29,7 +30,7 @@ fn record_one_action(dbtx: &mut DBTransaction, adrs: &mut AddressCache, aptrs: &
         (height,from_aid,to_aid,coin_type,coin_amt) VALUES 
         (?1, ?2, ?3, ?4, ?5)";
 
-    const sqlopt: &str = "INSERT INTO operate_action 
+    const sqlopt: &str = "INSERT INTO defi_operate 
         (height,kind,aid1,aid2,tarid,data) VALUES 
         (?1, ?2, ?3, ?4, ?5, ?6)";
 
@@ -47,8 +48,8 @@ fn record_one_action(dbtx: &mut DBTransaction, adrs: &mut AddressCache, aptrs: &
             return Ok(()) // ingore super big amt, bugs
         }
         let zhu = zhu as u64;
-        if zhu == 0 {
-            return Ok(()) // ingore < 1 zhu amt
+        if zhu < 10000 {
+            return Ok(()) // ingore < 1w zhu amt
         }
         let to_addr = action.to.real(aptrs).unwrap();
         let to_aid = record_addr_id(dbtx, adrs, setting, &to_addr, blkts)?;
@@ -62,8 +63,8 @@ fn record_one_action(dbtx: &mut DBTransaction, adrs: &mut AddressCache, aptrs: &
 
         let action = HacFromTransfer::must(&act.serialize());
         let zhu = action.amt.to_zhu_unsafe() as u64;
-        if zhu == 0 {
-            return Ok(()) // ingore < 1 zhu amt
+        if zhu < 10000 {
+            return Ok(()) // ingore < 1w zhu amt
         }
         let from_addr = action.from.real(aptrs).unwrap();
         let from_aid = record_addr_id(dbtx, adrs, setting, &from_addr, blkts)?;
@@ -77,8 +78,8 @@ fn record_one_action(dbtx: &mut DBTransaction, adrs: &mut AddressCache, aptrs: &
 
         let action = HacFromToTransfer::must(&act.serialize());
         let zhu = action.amt.to_zhu_unsafe() as u64;
-        if zhu == 0 {
-            return Ok(()) // ingore < 1 zhu amt
+        if zhu < 10000 {
+            return Ok(()) // ingore < 1w zhu amt
         }
         let from_addr = action.from.real(aptrs).unwrap();
         let to_addr = action.to.real(aptrs).unwrap();
@@ -198,6 +199,15 @@ fn record_one_action(dbtx: &mut DBTransaction, adrs: &mut AddressCache, aptrs: &
         //     diamovedate.insert(*dia, blkts);
         // }
 
+
+    /******** Diamond mint ********/
+
+    } else if kid == DiamondMint::kid() {
+
+        let action = DiamondMint::must(&act.serialize());
+        let miner_addr = &action.head.address;
+        let (_, accobj) = record_addr_as_mut(dbtx, adrs, setting, miner_addr, blkts)?;
+        accobj.minted_diamond += 1;
 
 
     /******** Channel Operate ********/

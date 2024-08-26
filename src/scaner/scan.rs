@@ -21,7 +21,8 @@ fn do_scan(scaner: &BlkScaner, setting: &mut ScanSettings, dbconn: &mut Connecti
     }
     // add erward to miner
     let miner_addr = blk_info.miner.readable();
-    let miner_id =  err!(record_addr_id(&mut dbtx, adrary, setting, &blk_info.miner, hei));
+    let (miner_id, miner_acc) =  err!(record_addr_as_mut(&mut dbtx, adrary, setting, &blk_info.miner, hei));
+    miner_acc.block_reward += hacash::mint::coinbase::block_reward_number(hei) as u64;
     adrary.get_mut(&miner_addr).unwrap().block_reward += blk_info.reward.to_mei_unsafe() as u64;
     // chain active
     let active = record_current_active(setting, hei);

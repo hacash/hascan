@@ -9,17 +9,23 @@
 
 pub fn record_addr_id(dbtx: &mut DBTransaction, adrs: &mut AddressCache, setting: &mut ScanSettings, 
     adrobj: &Address, blkts: u64) -> DBResult<u64> {
-        let (_, aid) = record_addr_id_ex(dbtx, adrs, setting, adrobj, blkts)?;
+        let (_, aid, _) = record_addr_id_ex(dbtx, adrs, setting, adrobj, blkts)?;
         Ok(aid as u64)
 }
 
+pub fn record_addr_as_mut<'a>(dbtx: &mut DBTransaction, adrs: &'a mut AddressCache, setting: &mut ScanSettings, 
+    adrobj: &Address, blkts: u64) -> DBResult<(u64, &'a mut AddressSto)> {
+        let (_, aid, addr) = record_addr_id_ex(dbtx, adrs, setting, adrobj, blkts)?;
+        Ok((aid as u64, adrs.get_mut(&addr).unwrap()))
+}
+
 pub fn record_addr_id_ex(dbtx: &mut DBTransaction, adrs: &mut AddressCache, setting: &mut ScanSettings, 
-    adrobj: &Address, blkts: u64) -> DBResult<(bool, i64)> {
+    adrobj: &Address, blkts: u64) -> DBResult<(bool, i64, String)> {
     let address = adrobj.readable();
     let new = true;
     let old = false;
     if let Some(adr) = adrs.get(&address) {
-        return Ok((old, adr.id)) // from cache
+        return Ok((old, adr.id, address)) // from cache
     }
     // query from db
     let mut stmt = dbtx.prepare_cached("SELECT id,minted_diamond,block_reward,used_fee FROM account WHERE address = ?1")?;
@@ -32,8 +38,8 @@ pub fn record_addr_id_ex(dbtx: &mut DBTransaction, adrs: &mut AddressCache, sett
             used_fee: row.get(3)?,
             timestamp: 0, // mean update not insert
         };
-        adrs.insert(address, asto); // cache
-        return Ok((old, aid)) // from cache
+        adrs.insert(address.clone(), asto); // cache
+        return Ok((old, aid, address)) // from cache
     }
     // create new account
     setting.auto_inc_address_id += 1;
@@ -43,8 +49,8 @@ pub fn record_addr_id_ex(dbtx: &mut DBTransaction, adrs: &mut AddressCache, sett
         timestamp: blkts,
         ..Default::default()
     };
-    adrs.insert(address, asto); // cache
-    Ok((new, aaid)) // new create address
+    adrs.insert(address.clone(), asto); // cache
+    Ok((new, aaid, address)) // new create address
 
     /* insert to database
     let mut stmt_irt = conn.prepare_cached("INSERT INTO account (address,timestamp) VALUES (?1, ?2)")?;

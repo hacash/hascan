@@ -7,7 +7,7 @@ pub fn routes(mut ctx: ApiCtx) -> Router {
     .route("/query/ranking/top100", get(ranking_top100))
     .route("/query/chain/active", get(chain_active))
     .route("/query/coin/transfer", get(coin_transfer))
-    .route("/query/action/operate", get(coin_transfer))
+    .route("/query/defi/operate", get(defi_operate))
     
     ;
 
