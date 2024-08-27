@@ -4,6 +4,7 @@ hascan
 *.config.ini
 *.csv
 *.zip
+hascan_*
 
 hacash_*_data/
 
