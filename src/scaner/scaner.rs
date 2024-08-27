@@ -42,6 +42,13 @@ impl BlockScaner for BlkScaner {
         self.do_init(ini)
     } 
 
+    fn exit(&self) -> RetErr {
+        println!("[BlockScaner] closed to save the settings and database.");
+        crate::save_setting(&self.setting.lock().unwrap())?;
+        let dbnn = self.dbconn.lock().unwrap();
+        dbnn.cache_flush().map_err(|e|e.to_string())
+    }
+
     // another thread
     fn start(&self) -> RetErr {
         self.do_start()
