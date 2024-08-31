@@ -43,7 +43,7 @@ fn record_one_action(dbtx: &mut DBTransaction, adrs: &mut AddressCache, aptrs: &
     if kid == HacToTransfer::kid() {
 
         let action = HacToTransfer::must(&act.serialize());
-        let mut zhu = action.amt.to_zhu_unsafe();
+        let mut zhu = action.hacash.to_zhu_unsafe();
         if zhu > 100_0000_00000000u64 as f64 {
             return Ok(()) // ingore super big amt, bugs
         }
@@ -62,7 +62,7 @@ fn record_one_action(dbtx: &mut DBTransaction, adrs: &mut AddressCache, aptrs: &
     } else if kid == HacFromTransfer::kid() {
 
         let action = HacFromTransfer::must(&act.serialize());
-        let zhu = action.amt.to_zhu_unsafe() as u64;
+        let zhu = action.hacash.to_zhu_unsafe() as u64;
         if zhu < 10000 {
             return Ok(()) // ingore < 1w zhu amt
         }
@@ -77,7 +77,7 @@ fn record_one_action(dbtx: &mut DBTransaction, adrs: &mut AddressCache, aptrs: &
     } else if kid == HacFromToTransfer::kid() {
 
         let action = HacFromToTransfer::must(&act.serialize());
-        let zhu = action.amt.to_zhu_unsafe() as u64;
+        let zhu = action.hacash.to_zhu_unsafe() as u64;
         if zhu < 10000 {
             return Ok(()) // ingore < 1w zhu amt
         }
