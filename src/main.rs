@@ -32,7 +32,7 @@ fn main() -> RetErr {
     let scaner = scaner::BlkScaner::new(settings, dbconn);
 
     // start run
-    hacash::run::fullnode(Some(Box::new(scaner)));
+    hacash::run::fullnode_with(Some(Box::new(scaner)));
 
     Ok(())
 }
