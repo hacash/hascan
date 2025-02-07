@@ -43,12 +43,12 @@ fn do_scan(scaner: &BlkScaner, setting: &mut ScanSettings, dbconn: &mut Connecti
     // save settings
     let stsvt = scaner.cnf.delaysavesetting as u64;
     if stsvt == 0 {
-        let _ = super::save_setting(setting); // save it now
+        let _ = super::save_setting(&scaner.cnf.datadir, setting); // save it now
     }else{
         let nowt = sys::curtimes();
         let mut prvt = scaner.prevsavetime.lock().unwrap();
         if nowt - *prvt > stsvt {
-            let _ = super::save_setting(setting); // save it now
+            let _ = super::save_setting(&scaner.cnf.datadir, setting); // save it now
             *prvt = nowt;
         }
     }

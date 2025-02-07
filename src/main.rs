@@ -12,6 +12,8 @@ RUSTFLAGS="$RUSTFLAGS -Awarnings" cargo build --release && cp ./target/release/h
 
 */
 
+use chain::interface::Scaner;
+
 
 mod database;
 mod setting;
@@ -28,8 +30,10 @@ fn main() -> Rerr {
     let inicnf = load_config(cnfp);
 
     // scaner
-    let (settings, dbconn) = init_db()?;
-    let scaner = scaner::BlkScaner::new(settings, dbconn);
+    let cnf = scaner::BlkScrConfig::new(&inicnf);
+    let (settings, dbconn) = init_db(&cnf.datadir)?;
+    let mut scaner = scaner::BlkScaner::new(cnf, settings, dbconn);
+    scaner.init(&inicnf).unwrap();
 
     // start run
     hacash::fullnode_with_scaner(inicnf, Box::new(scaner));

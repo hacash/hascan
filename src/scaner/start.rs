@@ -2,15 +2,13 @@
 
 impl BlkScaner {
 
-    fn do_init(&mut self, ini: &IniObj) -> Rerr {
-        self.cnf = BlkScrConfig::new(ini)?;
+    fn do_init(&mut self, _ini: &IniObj) -> Rerr {
         // set synchronous
         let synchronous = self.cnf.synchronous.clone();
         if synchronous != "NORMAL" {
             let sql = format!("PRAGMA synchronous = {};", &synchronous);
             self.dbconn.lock().unwrap().execute(&sql, ()).map_err(|e|e.to_string())?;
         }
-
         Ok(())
     } 
 

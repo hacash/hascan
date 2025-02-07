@@ -21,7 +21,7 @@ pub fn routes(ctx: ApiCtx) -> Router {
 async fn console(State(ctx): State<ApiCtx>, _req: Request) -> impl IntoResponse {
     let mut svtips = "";
     if ctx.cnf.delaysavesetting > 0 {
-        crate::save_setting(&ctx.setting.lock().unwrap()).unwrap();
+        crate::save_setting(&ctx.cnf.datadir, &ctx.setting.lock().unwrap()).unwrap();
         svtips = "<p>Save settings successfully!<p>"
     }
 

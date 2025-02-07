@@ -2,6 +2,7 @@
 
 #[derive(Clone, Default)]
 pub struct BlkScrConfig {
+    pub datadir: String,
     pub synchronous: String, // NORMAL, FULL, OFF
     pub delaysavesetting: u64,
     pub listen: u16,
@@ -10,20 +11,21 @@ pub struct BlkScrConfig {
 
 impl BlkScrConfig {
 
-    pub fn new(ini: &IniObj) -> Ret<BlkScrConfig> {
+    pub fn new(ini: &IniObj) -> BlkScrConfig {
 
         let sec = &ini_section(ini, "hascan"); // default = root
+        let datadir = ini_must(sec, "datadir", "hacash_scan_data");
         let synchronous = ini_must(sec, "synchronous", "NORMAL");
         let delaysavesetting = ini_must_u64(sec, "delaysavesetting", 0);
         let listen = ini_must_u64(sec, "listen", 8087) as u16;
 
-
         let cnf = BlkScrConfig {
+            datadir,
             synchronous,
             delaysavesetting,
             listen,
         };
-        Ok(cnf)
+        cnf
     }
 
 }

@@ -10,13 +10,13 @@ use field::interface::*;
 use crate::database::*;
 use crate::setting::*;
 
-const DATADIR: &str = "./hacash_scan_data";
+// const DATADIR: &str = "./hacash_scan_data";
 
-pub fn init_db() -> Ret<(ScanSettings, Connection)> {
+pub fn init_db(datadir: &str) -> Ret<(ScanSettings, Connection)> {
 
     // create data dir
-    let datadir = DATADIR.to_owned();
-    fs::create_dir(&datadir).unwrap();
+    let datadir = datadir.to_owned();
+    let _ = fs::create_dir(&datadir);
     // settings
     let stfn = datadir.to_owned() + "/settings.dat";
     let ldf = fs::read(&stfn);
@@ -33,8 +33,8 @@ pub fn init_db() -> Ret<(ScanSettings, Connection)> {
 }
 
 
-pub fn save_setting(setting: &ScanSettings) -> Rerr {
-    let stfn = DATADIR.to_owned() + "/settings.dat";
+pub fn save_setting(datadir: &str, setting: &ScanSettings) -> Rerr {
+    let stfn = datadir.to_owned() + "/settings.dat";
     fs::write(stfn, setting.serialize()).map_err(|e|e.to_string())
 }
 

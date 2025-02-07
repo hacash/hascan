@@ -23,9 +23,9 @@ pub struct BlkScaner {
 }
 
 impl BlkScaner {
-    pub fn new(setting: ScanSettings, dbconn: Connection) -> BlkScaner {
+    pub fn new(cnf: BlkScrConfig, setting: ScanSettings, dbconn: Connection) -> BlkScaner {
         BlkScaner{
-            cnf: BlkScrConfig::default(),
+            cnf,
             dbconn: Arc::new(Mutex::new(dbconn)),
             setting: Arc::new(Mutex::new(setting)),
             rlsftx: None.into(),
@@ -44,14 +44,18 @@ impl Scaner for BlkScaner {
 
     fn exit(&self) {
         println!("[BlockScaner] closed to save the settings and database.");
-        let _ = crate::save_setting(&self.setting.lock().unwrap());
+        let _ = crate::save_setting(&self.cnf.datadir, &self.setting.lock().unwrap());
         let dbnn = self.dbconn.lock().unwrap();
         let _ = dbnn.cache_flush().map_err(|e|e.to_string());
     }
 
     // another thread
     fn start(&self) -> Rerr {
-        self.do_start()
+        let rt = node::new_tokio_rt( false );
+        let _ = rt.block_on(async move {
+            self.do_start()
+        });
+        Ok(())
     }
 
     // another thread
