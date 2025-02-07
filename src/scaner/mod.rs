@@ -1,19 +1,14 @@
-use std::collections::{ HashMap };
 use std::sync::{ Arc, Mutex };
-use std::sync::mpsc::{ sync_channel,  Receiver, SyncSender };
+use std::sync::mpsc::{ sync_channel, SyncSender };
 
-use rusqlite::{params, Connection, Transaction as DBTransaction, Result as DBResult};
+use rusqlite::Connection;
 
 
-use hacash::sys::*;
-use hacash::config::*;
-use hacash::interface::extend::*;
-use hacash::interface::chain::*;
-use hacash::interface::protocol::*;
-
-use hacash::core::field::*;
-use hacash::core::state::*;
-use hacash::mint::state::*;
+use sys::*;
+use db::*;
+use chain::interface::*;
+use protocol::interface::*;
+use protocol::state::*;
 
 
 use crate::setting::*;

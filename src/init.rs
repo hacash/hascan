@@ -1,13 +1,11 @@
 use std::fs;
 
-use rusqlite::{params, Connection, Result as DBResult};
+use rusqlite::Connection;
 
 
-use hacash::interface::field::*;
+use sys::{ self, *};
+use field::interface::*;
 
-use hacash::sys::{ self, *};
-use hacash::base::field::*;
-use hacash::base::combo::*;
 
 use crate::database::*;
 use crate::setting::*;
@@ -18,7 +16,7 @@ pub fn init_db() -> Ret<(ScanSettings, Connection)> {
 
     // create data dir
     let datadir = DATADIR.to_owned();
-    fs::create_dir(&datadir);
+    fs::create_dir(&datadir).unwrap();
     // settings
     let stfn = datadir.to_owned() + "/settings.dat";
     let ldf = fs::read(&stfn);
@@ -35,7 +33,7 @@ pub fn init_db() -> Ret<(ScanSettings, Connection)> {
 }
 
 
-pub fn save_setting(setting: &ScanSettings) -> RetErr {
+pub fn save_setting(setting: &ScanSettings) -> Rerr {
     let stfn = DATADIR.to_owned() + "/settings.dat";
     fs::write(stfn, setting.serialize()).map_err(|e|e.to_string())
 }

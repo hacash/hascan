@@ -12,6 +12,7 @@ pub struct AddressSto {
     pub timestamp: u64,
 }
 
+#[allow(dead_code)]
 impl AddressSto {
     pub fn new(aid: i64) -> AddressSto {
         AddressSto {

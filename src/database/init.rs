@@ -3,11 +3,9 @@
 
 // create tables
 pub fn create_tables(conn: &mut Connection) -> DBResult<()> {
-    let mut tx = conn.transaction()?;
+    let tx = conn.transaction()?;
 
-    
     /* account */
-
 
     tx.execute(
         "CREATE TABLE IF NOT EXISTS `account` (

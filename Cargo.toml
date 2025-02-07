@@ -11,8 +11,17 @@ axum = "0.7.5"
 serde = "1.0.199"
 serde_json = "1.0.116"
 rusqlite = "0.32.1"
-# hacash = { git = "https://github.com/hacash/rust", package = "hacash"}
-hacash = { path = "../rust", package = "hacash"}
+# hacash = { git = "https://github.com/hacash/fullnode", package = "hacash"}
+hacash = { path = "../fullnode", package = "hacash"}
+sys = { path = "../fullnode/sys" }
+field = { path = "../fullnode/field" }
+db = { path = "../fullnode/db", features = ["db-sled"] }
+# db = { path = "../fullnode/db", features = ["db-leveldb-sys"] }
+protocol = { path = "../fullnode/protocol" }
+mint = { path = "../fullnode/mint" }
+node = { path = "../fullnode/node" }
+chain = { path = "../fullnode/chain" }
+server = { path = "../fullnode/server" }
 
 
 # [profile.release]

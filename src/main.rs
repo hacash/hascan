@@ -12,8 +12,6 @@ RUSTFLAGS="$RUSTFLAGS -Awarnings" cargo build --release && cp ./target/release/h
 
 */
 
-#[macro_use]
-extern crate hacash;
 
 mod database;
 mod setting;
@@ -24,15 +22,17 @@ mod scaner;
 include!("init.rs");
 
 
-fn main() -> RetErr {
+fn main() -> Rerr {
 
-    let (settings, dbconn) = init_db()?;
+    let cnfp = "./hascan.config.ini".to_string();
+    let inicnf = load_config(cnfp);
 
     // scaner
+    let (settings, dbconn) = init_db()?;
     let scaner = scaner::BlkScaner::new(settings, dbconn);
 
     // start run
-    hacash::run::fullnode_with(Some(Box::new(scaner)));
+    hacash::fullnode_with_scaner(inicnf, Box::new(scaner));
 
     Ok(())
 }

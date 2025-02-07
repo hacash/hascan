@@ -3,7 +3,7 @@
 
 
 
-defineQueryObject!{ Q8364,
+api_querys_define!{ Q8364,
     coin, Option<String>, None, // HAC / BTC / HACD
 }
 
@@ -36,7 +36,7 @@ async fn ranking_top100(State(ctx): State<ApiCtx>, q: Query<Q8364>) -> impl Into
         datalist.push((a.addr.readable(), a.amount.uint() as f64 / div));
     }
 
-    let mut data = jsondata!{
+    let data = jsondata!{
         "num", ll,
         "list", datalist,
     };

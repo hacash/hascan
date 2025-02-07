@@ -1,14 +1,9 @@
-use std::collections::{ HashMap };
+use std::collections::HashMap;
 
-use hacash::interface::field::*;
+use field::interface::*;
 
-use hacash::sys::*;
-use hacash::base::field::*;
-use hacash::base::combo::*;
-use hacash::core::field::*;
-use hacash::core::state::*;
-
-
+use sys::*;
+use field::*;
 
 
 include!("address.rs");

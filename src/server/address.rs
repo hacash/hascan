@@ -3,7 +3,7 @@
 
 
 
-defineQueryObject!{ Q5363,
+api_querys_define!{ Q5363,
     address, String, s!(""), // address list
 }
 
@@ -32,7 +32,7 @@ fn query_address_count(ctx: ApiCtx, q: Query<Q5363>) -> DBResult<JsonObject> {
     }
     let mut addrids = String::new();
     for a in &addrs {
-        if let Err(e) = Address::from_readable(a) {
+        if let Err(..) = Address::from_readable(a) {
             return errf(format!("address {} format error", a))
         }
         addrids += &format!("\"{}\",", &a);
@@ -48,7 +48,7 @@ fn query_address_count(ctx: ApiCtx, q: Query<Q5363>) -> DBResult<JsonObject> {
 
     // load
     let mut datalist = Vec::with_capacity(addrs.len()); 
-    let mut dbconn = ctx.dbconn.lock().unwrap();
+    let dbconn = ctx.dbconn.lock().unwrap();
     let mut stmt = dbconn.prepare(qrsql.as_str())?;
     let mut qres = stmt.query(())?;
     while let Some(row) = qres.next()? {
@@ -64,7 +64,7 @@ fn query_address_count(ctx: ApiCtx, q: Query<Q5363>) -> DBResult<JsonObject> {
         });
     }
 
-    let mut data = jsondata!{
+    let data = jsondata!{
         "list", datalist,
     };
 

@@ -3,11 +3,11 @@
 
 
 
-defineQueryObject!{ Q8237,
+api_querys_define!{ Q8237,
     __nnn__, Option<String>, None, // HAC / BTC / HACD
 }
 
-async fn chain_active(State(ctx): State<ApiCtx>, q: Query<Q8237>) -> impl IntoResponse  {
+async fn chain_active(State(ctx): State<ApiCtx>, _q: Query<Q8237>) -> impl IntoResponse  {
     // q_must!(q, coin, s!("HAC"));
 
     let bding = ctx.setting.lock().unwrap();
@@ -30,7 +30,7 @@ async fn chain_active(State(ctx): State<ApiCtx>, q: Query<Q8237>) -> impl IntoRe
         ));
     }
 
-    let mut data = jsondata!{
+    let data = jsondata!{
         "num", ll,
         "list", datalist,
     };

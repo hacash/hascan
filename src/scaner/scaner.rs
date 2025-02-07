@@ -1,9 +1,9 @@
 
 
 pub struct RollStuff {
-    blkpkg: Arc<dyn BlockPkg>, 
+    blk: Arc<dyn Block>, 
     sta: Arc<dyn State>, 
-    sto: Arc<dyn Store>
+    sto: Arc<dyn DiskDB>
 }
 
 
@@ -36,31 +36,31 @@ impl BlkScaner {
 }
 
 
-impl BlockScaner for BlkScaner {
+impl Scaner for BlkScaner {
 
-    fn init(&mut self, ini: &IniObj) -> RetErr {
+    fn init(&mut self, ini: &IniObj) -> Rerr {
         self.do_init(ini)
     } 
 
-    fn exit(&self) -> RetErr {
+    fn exit(&self) {
         println!("[BlockScaner] closed to save the settings and database.");
-        crate::save_setting(&self.setting.lock().unwrap())?;
+        let _ = crate::save_setting(&self.setting.lock().unwrap());
         let dbnn = self.dbconn.lock().unwrap();
-        dbnn.cache_flush().map_err(|e|e.to_string())
+        let _ = dbnn.cache_flush().map_err(|e|e.to_string());
     }
 
     // another thread
-    fn start(&self) -> RetErr {
+    fn start(&self) -> Rerr {
         self.do_start()
     }
 
     // another thread
-    fn serve(&self) -> RetErr {
+    fn serve(&self) -> Rerr {
         self.do_serve()
     }
 
-    fn roll(&self, blkpkg: Arc<dyn BlockPkg>,  sta: Arc<dyn State>, sto: Arc<dyn Store> ) -> RetErr {
-        let stuff = RollStuff{blkpkg, sta, sto};
+    fn roll(&self, blk: Arc<dyn Block>,  sta: Arc<dyn State>, sto: Arc<dyn DiskDB> ) -> Rerr {
+        let stuff = RollStuff{blk, sta, sto};
         self.rlsftx.lock().unwrap().as_mut().unwrap()
             .send(stuff).map_err(|e|e.to_string())
     }

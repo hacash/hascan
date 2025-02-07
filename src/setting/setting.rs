@@ -1,7 +1,4 @@
 
-use hacash::interface::field::*;
-
-
 
 //////////////////////////////
 
@@ -9,15 +6,16 @@ use hacash::interface::field::*;
 
 
 
-StructFieldStruct!{ Balance,
+combi_struct!{ Balance,
     addr: Address
     amount: Uint8 // ZHU, SAT, DIAMOND
 }
 
 
-StructFieldList!(BalanceRankingList, 
-    count, Uint1, // MAX 200
-    lists, Balance);
+combi_list!(BalanceRankingList, 
+    Uint1, // MAX 200
+    Balance
+);
 
 
 
@@ -25,7 +23,7 @@ StructFieldList!(BalanceRankingList,
 //////////////////////////////
 
 
-StructFieldStruct!{ ActiveItem,
+combi_struct!{ ActiveItem,
     secnum:  Uint4
     newadr:  Uint4 // new address
     txs:     Uint4
@@ -39,9 +37,10 @@ StructFieldStruct!{ ActiveItem,
 
 
 
-StructFieldList!(ChainActiveList, 
-    count, Uint1, // MAX 200
-    lists, ActiveItem);
+combi_list!(ChainActiveList, 
+    Uint1, // MAX 200
+    ActiveItem
+);
 
 
 
@@ -51,7 +50,7 @@ StructFieldList!(ChainActiveList,
 
 
 
-StructFieldStruct!{ ScanSettings,
+combi_struct!{ ScanSettings,
     height: Uint5
     auto_inc_address_id: Uint5 // next addr database id
     _1: Fixed3

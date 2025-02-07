@@ -2,7 +2,7 @@
 
 impl BlkScaner {
 
-    fn do_init(&mut self, ini: &IniObj) -> RetErr {
+    fn do_init(&mut self, ini: &IniObj) -> Rerr {
         self.cnf = BlkScrConfig::new(ini)?;
         // set synchronous
         let synchronous = self.cnf.synchronous.clone();
@@ -15,7 +15,7 @@ impl BlkScaner {
     } 
 
     // another thread
-    fn do_start(&self) -> RetErr {
+    fn do_start(&self) -> Rerr {
         // roll thread
         let (sender, receiver) = sync_channel(50);
         {
@@ -28,17 +28,14 @@ impl BlkScaner {
             let mut dbc = self.dbconn.lock().unwrap();
             let mut set = self.setting.lock().unwrap();
             // let mut dmvd = self.diamovedate.lock().unwrap();
-            let block = stuff.blkpkg.objc().as_read();
-            let csto = CoreStoreDisk::wrap(stuff.sto.as_ref());
-            let csta = CoreStateDisk::wrap(stuff.sta.as_ref());
-            let msto = MintStoreDisk::wrap(stuff.sto.as_ref());
-            let msta = MintStateDisk::wrap(stuff.sta.as_ref());
+            let block = stuff.blk.as_read();
+            let csta = CoreStateRead::wrap(stuff.sta.as_ref());
+            let csto = BlockDisk::wrap(stuff.sto);
             let mut adrs = AddressCache::new();
             do_scan(self, &mut *set, &mut *dbc, 
-                &mut adrs, block, csto, csta, msto, msta,
+                &mut adrs, block, csta, csto,
             )?;
         }
-        errf!("cannot end of start loop")
     }
 
 }

@@ -1,5 +1,5 @@
 
-pub fn routes(mut ctx: ApiCtx) -> Router {
+pub fn routes(ctx: ApiCtx) -> Router {
 
     let lrt = Router::new().route("/", get(console))
     
@@ -18,7 +18,7 @@ pub fn routes(mut ctx: ApiCtx) -> Router {
 
 
 
-async fn console(State(ctx): State<ApiCtx>, req: Request) -> impl IntoResponse {
+async fn console(State(ctx): State<ApiCtx>, _req: Request) -> impl IntoResponse {
     let mut svtips = "";
     if ctx.cnf.delaysavesetting > 0 {
         crate::save_setting(&ctx.setting.lock().unwrap()).unwrap();

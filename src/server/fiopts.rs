@@ -3,7 +3,7 @@
 
 
 
-defineQueryObject!{ Q1856,
+api_querys_define!{ Q1856,
     limit, Option<u64>, None,
     page, Option<u64>, None,
     both, Option<String>, None, // Address
@@ -37,7 +37,7 @@ fn query_defi_operate(ctx: ApiCtx, q: Query<Q1856>) -> DBResult<JsonObject> {
         "list", (),
     };
 
-    let mut adrcond = "".to_owned();
+    let adrcond;
 
     let errf = |e: String| {
         Err(rusqlite::Error::InvalidParameterName(e))
@@ -90,7 +90,7 @@ fn query_defi_operate(ctx: ApiCtx, q: Query<Q1856>) -> DBResult<JsonObject> {
 
     // println!("query_addr_maps {}", addrs.len());
 
-    let mut data = jsondata!{
+    let data = jsondata!{
         "addrs", addrs,
         "list", datalist,
     };

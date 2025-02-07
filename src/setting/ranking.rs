@@ -1,16 +1,18 @@
+use protocol::state::CoreStateRead;
+
 
 
 /**
 *
 */
-pub fn update_ranking(setting: &mut ScanSettings, adrs: &AddressCache, state: &CoreStateDisk) -> RetErr {
+pub fn update_ranking(setting: &mut ScanSettings, adrs: &AddressCache, state: &CoreStateRead) -> Rerr {
 
     for (addr, _) in adrs {
         let adr = Address::from_readable(addr)?;
         let Some(bls) = state.balance(&adr) else {
             continue
         };
-        let zhu = bls.hacash.to_zhu_unsafe() as u64;
+        let zhu = bls.hacash.to_zhu_u128().unwrap_or(0) as u64;
         let sat = bls.satoshi.uint() as u64;
         let dia = bls.diamond.uint() as u64;
         // update
@@ -20,7 +22,7 @@ pub fn update_ranking(setting: &mut ScanSettings, adrs: &AddressCache, state: &C
     }
 
     // truncate to 200
-    const maxl: usize = 200;
+    let maxl: usize = 200;
     macro_rules! truncate {
         ($p: ident) => { {
             let mut zl = setting.$p.list().len();
