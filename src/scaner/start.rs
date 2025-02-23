@@ -28,7 +28,7 @@ impl BlkScaner {
             // let mut dmvd = self.diamovedate.lock().unwrap();
             let block = stuff.blk.as_read();
             let csta = CoreStateRead::wrap(stuff.sta.as_ref());
-            let csto = BlockDisk::wrap(stuff.sto);
+            let csto = BlockStore::wrap(stuff.sto);
             let mut adrs = AddressCache::new();
             do_scan(self, &mut *set, &mut *dbc, 
                 &mut adrs, block, csta, csto,

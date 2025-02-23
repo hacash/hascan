@@ -3,7 +3,7 @@
 pub struct RollStuff {
     blk: Arc<dyn Block>, 
     sta: Arc<dyn State>, 
-    sto: Arc<dyn DiskDB>
+    sto: Arc<DiskKV>
 }
 
 
@@ -63,7 +63,7 @@ impl Scaner for BlkScaner {
         self.do_serve()
     }
 
-    fn roll(&self, blk: Arc<dyn Block>,  sta: Arc<dyn State>, sto: Arc<dyn DiskDB> ) -> Rerr {
+    fn roll(&self, blk: Arc<dyn Block>,  sta: Arc<dyn State>, sto: Arc<DiskKV> ) -> Rerr {
         let stuff = RollStuff{blk, sta, sto};
         self.rlsftx.lock().unwrap().as_mut().unwrap()
             .send(stuff).map_err(|e|e.to_string())

@@ -1,7 +1,7 @@
 
 fn do_scan(scaner: &BlkScaner, setting: &mut ScanSettings, dbconn: &mut Connection, 
     adrary: &mut AddressCache,
-    block: &dyn BlockRead, csta: CoreStateRead, _csto: BlockDisk,
+    block: &dyn BlockRead, csta: CoreStateRead, _csto: BlockStore,
     // diamovedate: &mut HashMap<DiamondName, u64>,
 ) -> Rerr {
     macro_rules! err {
