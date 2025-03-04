@@ -63,10 +63,9 @@ impl Scaner for BlkScaner {
         self.do_serve()
     }
 
-    fn roll(&self, blk: Arc<dyn Block>,  sta: Arc<dyn State>, sto: Arc<DiskKV> ) -> Rerr {
+    fn roll(&self, blk: Arc<dyn Block>,  sta: Arc<dyn State>, sto: Arc<DiskKV> ) {
         let stuff = RollStuff{blk, sta, sto};
-        self.rlsftx.lock().unwrap().as_mut().unwrap()
-            .send(stuff).map_err(|e|e.to_string())
+        self.rlsftx.lock().unwrap().as_mut().unwrap().send(stuff).unwrap();
     }
 
 
