@@ -153,7 +153,7 @@ fn record_one_action(dbtx: &mut DBTransaction, adrs: &mut AddressCache, aptrs: &
         let action = DiaFromTrs::must(&act.serialize());
         let from_addr = action.from.real(aptrs).unwrap();
         let from_aid = record_addr_id(dbtx, adrs, setting, &from_addr, blkts)?;
-        let dia = action.diamonds.count().uint() as u64;
+        let dia = action.diamonds.count() as u64;
         let mut stmt = dbtx.prepare_cached(sqlirt)?;
         stmt.insert((height, from_aid, main_aid, COINTY_DIA, dia))?;
         let active = record_current_active(setting, height);
@@ -169,7 +169,7 @@ fn record_one_action(dbtx: &mut DBTransaction, adrs: &mut AddressCache, aptrs: &
         let action = DiaToTrs::must(&act.serialize());
         let to_addr = action.to.real(aptrs).unwrap();
         let to_aid = record_addr_id(dbtx, adrs, setting, &to_addr, blkts)?;
-        let dia = action.diamonds.count().uint() as u64;
+        let dia = action.diamonds.count() as u64;
         let mut stmt = dbtx.prepare_cached(sqlirt)?;
         stmt.insert((height, main_aid, to_aid, COINTY_DIA, dia))?;
         let active = record_current_active(setting, height);
@@ -188,7 +188,7 @@ fn record_one_action(dbtx: &mut DBTransaction, adrs: &mut AddressCache, aptrs: &
         let from_aid = record_addr_id(dbtx, adrs, setting, &from_addr, blkts)?;
         let to_addr = action.to.real(aptrs).unwrap();
         let to_aid = record_addr_id(dbtx, adrs, setting, &to_addr, blkts)?;
-        let dia = action.diamonds.count().uint() as u64;
+        let dia = action.diamonds.count() as u64;
         let mut stmt = dbtx.prepare_cached(sqlirt)?;
         stmt.insert((height, from_aid, to_aid, COINTY_DIA, dia))?;
         let active = record_current_active(setting, height);
