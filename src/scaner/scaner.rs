@@ -67,7 +67,8 @@ impl Scaner for BlkScaner {
         let stuff = RollStuff{blk, sta, sto};
         let sdres = self.rlsftx.lock().unwrap().as_mut().unwrap().send(stuff);
         if let Err(e) = sdres {
-            println!("~ ~ ~ ~ Block Scaner do roll send block stuff error: {}", e)
+            panic!("~ ~ ~ ~ Block Scaner do roll send block stuff error: {}", e)
+            // println!("~ ~ ~ ~ Block Scaner do roll send block stuff error: {}", e)
         }
     }
 
