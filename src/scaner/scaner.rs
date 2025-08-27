@@ -3,7 +3,7 @@
 pub struct RollStuff {
     blk: Arc<dyn Block>, 
     sta: Arc<dyn State>, 
-    sto: Arc<DiskKV>
+    sto: Arc<dyn DiskDB>
 }
 
 
@@ -16,7 +16,7 @@ pub struct BlkScaner {
     setting: Arc<Mutex<ScanSettings>>,
     // 
     rlsftx: Mutex<Option<SyncSender<RollStuff>>>,
-    // rlsfrx: Mutex<Option<Receiver<RollStuff>>>,
+    rlsfrx: Mutex<Option<Receiver<RollStuff>>>,
     // opt
     prevsavetime: Mutex<u64>,
     // diamovedate: Arc<Mutex<HashMap<DiamondName, u64>>>,
@@ -24,11 +24,14 @@ pub struct BlkScaner {
 
 impl BlkScaner {
     pub fn new(cnf: BlkScrConfig, setting: ScanSettings, dbconn: Connection) -> BlkScaner {
+        // roll thread
+        let (sender, receiver) = sync_channel(50);
         BlkScaner{
             cnf,
             dbconn: Arc::new(Mutex::new(dbconn)),
             setting: Arc::new(Mutex::new(setting)),
-            rlsftx: None.into(),
+            rlsftx: Some(sender).into(),
+            rlsfrx: Some(receiver).into(),
             prevsavetime: 0.into(),
             // diamovedate: Arc::default(),
         }
@@ -50,20 +53,19 @@ impl Scaner for BlkScaner {
     }
 
     // another thread
-    fn start(&self) -> Rerr {
+    fn start(&self, wkr: Worker) {
         let rt = node::new_tokio_rt( false );
         let _ = rt.block_on(async move {
-            self.do_start()
+            self.do_start(wkr)
         });
-        Ok(())
     }
 
     // another thread
-    fn serve(&self) -> Rerr {
-        self.do_serve()
+    fn serve(&self, wkr: Worker) {
+        self.do_serve(wkr)
     }
 
-    fn roll(&self, blk: Arc<dyn Block>,  sta: Arc<dyn State>, sto: Arc<DiskKV> ) {
+    fn roll(&self, blk: Arc<dyn Block>, sta: Arc<dyn State>, sto: Arc<dyn DiskDB> ) {
         let stuff = RollStuff{blk, sta, sto};
         let sdres = self.rlsftx.lock().unwrap().as_mut().unwrap().send(stuff);
         if let Err(e) = sdres {

@@ -1,14 +1,13 @@
 use std::sync::{ Arc, Mutex };
-use std::sync::mpsc::{ sync_channel, SyncSender };
+use std::sync::mpsc::{ sync_channel, SyncSender, Receiver };
 
 use rusqlite::Connection;
 
 
 use sys::*;
-use db::*;
-use chain::interface::*;
 use protocol::interface::*;
 use protocol::state::*;
+use protocol::component::*;
 
 
 use crate::setting::*;

@@ -1,6 +1,6 @@
 
 
-use chain::interface::Scaner;
+use protocol::interface::Scaner;
 
 
 mod database;
@@ -15,16 +15,18 @@ include!("init.rs");
 fn main() -> Rerr {
 
     let cnfp = "./hascan.config.ini".to_string();
-    let inicnf = load_config(cnfp);
+    let inicnf = load_config(cnfp.clone());
 
-    // scaner
+    // create scaner
     let cnf = scaner::BlkScrConfig::new(&inicnf);
     let (settings, dbconn) = init_db(&cnf.datadir)?;
     let mut scaner = scaner::BlkScaner::new(cnf, settings, dbconn);
     scaner.init(&inicnf).unwrap();
 
+    
+
     // start run
-    hacash::fullnode_with_scaner(inicnf, Box::new(scaner));
+    hacash::run_with_scaner(&cnfp, Box::new(scaner));
 
     Ok(())
 }

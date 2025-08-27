@@ -12,7 +12,7 @@ fn do_scan(scaner: &BlkScaner, setting: &mut ScanSettings, dbconn: &mut Connecti
     // db tx
     let mut dbtx = err!(dbconn.transaction());
     // note
-    let blk_info = protocol::create_recent_block_info(block);
+    let blk_info = create_recent_block_info(block);
     let hei = blk_info.height;
     let blkts = blk_info.time;
     if hei % 1000 == 0 {

@@ -15,7 +15,7 @@ rusqlite = "0.32.1"
 hacash = { path = "../fullnode", package = "hacash", default-features = false, features = ["db-leveldb-sys"] }
 sys = { path = "../fullnode/sys" }
 field = { path = "../fullnode/field" }
-db = { path = "../fullnode/db" }
+# db = { path = "../fullnode/db" }
 protocol = { path = "../fullnode/protocol"}
 mint = { path = "../fullnode/mint" }
 node = { path = "../fullnode/node" }
