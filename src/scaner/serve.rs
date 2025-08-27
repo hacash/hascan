@@ -2,7 +2,7 @@
 impl BlkScaner {
 
     // another thread
-    fn do_serve(&self) -> Rerr {
+    fn do_serve(&self, wkr: Worker) {
         // ctx
         let cnf = self.cnf.clone();
         let dbconn = self.dbconn.clone();
@@ -11,9 +11,10 @@ impl BlkScaner {
         // server listen loop with multi thread
         let rt = node::new_tokio_rt( true );
         rt.block_on(async move {
-            crate::server::server_listen(cnf, setting, dbconn).await
+            crate::server::server_listen(cnf, setting, dbconn, wkr).await;
+            // close scan stuff sender
+            self.rlsftx.lock().unwrap().take();
         });
-        errf!("cannot end server loop")
     }
 
 }

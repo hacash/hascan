@@ -13,15 +13,16 @@ impl BlkScaner {
     } 
 
     // another thread
-    fn do_start(&self) -> Rerr {
-        // roll thread
-        let (sender, receiver) = sync_channel(50);
-        {
-            let mut rlsftx = self.rlsftx.lock().unwrap();
-            *rlsftx = Some(sender);
-        }
+    fn do_start(&self, mut wkr: Worker) {
+        let rlsfrx = self.rlsfrx.lock().unwrap().take().unwrap();
         loop {
-            let stuff = receiver.recv().unwrap();
+            if wkr.quit() {
+                println!("[Scaner] scan end.");
+                return;
+            }
+            let Ok(stuff) = rlsfrx.recv() else {
+                break;
+            };
             // call toll
             let mut dbc = self.dbconn.lock().unwrap();
             let mut set = self.setting.lock().unwrap();
@@ -37,6 +38,8 @@ impl BlkScaner {
                 panic!("Scaner do_scan height {} error: {}", block.height(), e);
             };
         }
+        println!("[Scaner] scan end.");
+        wkr.end(); // end
     }
 
 }
