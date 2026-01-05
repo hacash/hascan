@@ -12,7 +12,7 @@ serde = "1.0.199"
 serde_json = "1.0.116"
 rusqlite = "0.32.1"
 # hacash = { git = "https://github.com/hacash/fullnode", package = "hacash"}
-hacash = { path = "../fullnode", package = "hacash", default-features = false, features = ["db-leveldb-sys"] }
+hacash = { path = "../fullnode", package = "hacash", default-features = false }
 sys = { path = "../fullnode/sys" }
 field = { path = "../fullnode/field" }
 # db = { path = "../fullnode/db" }
@@ -22,6 +22,11 @@ node = { path = "../fullnode/node" }
 chain = { path = "../fullnode/chain"}
 server = { path = "../fullnode/server" }
 
+[features]
+default = ["db-leveldb-sys"]
+db-sled = ["hacash/db-sled"]
+db-rusty-leveldb = ["hacash/db-rusty-leveldb"]
+db-leveldb-sys = ["hacash/db-leveldb-sys"]
 
 # [profile.release]
 # opt-level = 3       # Optimize for size.

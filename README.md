@@ -6,9 +6,13 @@ Hacash block scaner for explorer
 # step1: 
 sudo apt-get install libsqlite3-dev 
 
-# db-level-sys
+# build
 RUSTFLAGS="$RUSTFLAGS -Awarnings" cargo build && cp ./target/debug/hascan ./ && ./hascan
 rm -rf hacash_*_data/
+
+# db-level-sys
+cargo build --release --no-default-features --features "db-leveldb-sys"
+
 
 # release
 RUSTFLAGS="$RUSTFLAGS -Awarnings" cargo build --release && cp ./target/release/hascan ./ && cp ./hascan ../fullnode/hascan_2025082701

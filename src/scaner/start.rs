@@ -17,8 +17,7 @@ impl BlkScaner {
         let rlsfrx = self.rlsfrx.lock().unwrap().take().unwrap();
         loop {
             if wkr.quit() {
-                println!("[Scaner] scan end.");
-                return;
+                break;
             }
             let Ok(stuff) = rlsfrx.recv() else {
                 break;
@@ -28,7 +27,7 @@ impl BlkScaner {
             let mut set = self.setting.lock().unwrap();
             // let mut dmvd = self.diamovedate.lock().unwrap();
             let block = stuff.blk.as_read();
-            let csta = CoreStateRead::wrap(stuff.sta.as_ref());
+            let csta = CoreStateRead::wrap(stuff.sta.as_ref().as_ref());
             let csto = BlockStore::wrap(stuff.sto);
             let mut adrs = AddressCache::new();
             let ise = do_scan(self, &mut *set, &mut *dbc, 
