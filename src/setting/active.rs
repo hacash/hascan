@@ -21,29 +21,34 @@ pub fn record_current_active<'a>(setting: &'a mut ScanSettings, height: u64) -> 
     // defs
     let sechei: usize = 2000; // one week
     let maxsec: usize = 25; // half year
-    let cursec = (height-1) / sechei as u64 + 1;
-    let actives = setting.chain_active.as_mut();
-    if actives.len() > 0 &&  actives[0].secnum.uint() as u64 == cursec {
-        return setting.chain_active.as_mut().get_mut(0).unwrap()
-    }else{
+    let cursec = height.saturating_sub(1) / sechei as u64 + 1;
+
+    let (count, actives) = {
+        let chain_active = &mut setting.chain_active;
+        (&mut chain_active.count, &mut chain_active.lists)
+    };
+
+    let same_cursec = actives.first()
+        .map(|item| item.secnum.uint() as u64 == cursec)
+        .unwrap_or(false);
+
+    if !same_cursec {
         // new
         let mut acone = ActiveItem::default();
         acone.secnum = Uint4::from(cursec as u32);
         // create
-        if actives.len() == 0 {
+        if actives.is_empty() {
             actives.push(acone.clone());
         }
         if actives[0].secnum.uint() as u64 != cursec {
             actives.insert(0, acone);
         }
         // max truncate
-        let mut rsl = actives.len();
-        if rsl > maxsec {
-            rsl = maxsec;
+        if actives.len() > maxsec {
+            actives.truncate(maxsec);
         }
-        actives.truncate(rsl);
-        setting.chain_active.count = Uint1::from(rsl as u8);
-        // ok
-        setting.chain_active.as_mut().get_mut(0).unwrap()
     }
+
+    *count = Uint1::from(actives.len() as u8);
+    actives.get_mut(0).unwrap()
 }

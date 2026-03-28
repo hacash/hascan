@@ -67,14 +67,18 @@ impl Scaner for BlkScaner {
 
     fn roll(&self, blk: Arc<dyn Block>, sta: Arc<Box<dyn State>>, sto: Arc<dyn DiskDB> ) {
         let stuff = RollStuff{blk, sta, sto};
-        let sdres = self.rlsftx.lock().unwrap().as_mut().unwrap().send(stuff);
-        if let Err(e) = sdres {
+        let sender = {
+            let holder = self.rlsftx.lock().unwrap();
+            holder.as_ref().cloned()
+        };
+        let Some(sender) = sender else {
+            panic!("~ ~ ~ ~ Block Scaner roll sender is none")
+        };
+        if let Err(e) = sender.send(stuff) {
             panic!("~ ~ ~ ~ Block Scaner do roll send block stuff error: {}", e)
-            // println!("~ ~ ~ ~ Block Scaner do roll send block stuff error: {}", e)
         }
     }
 
 
 
 }
-

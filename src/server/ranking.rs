@@ -17,7 +17,7 @@ async fn ranking_top100(State(ctx): State<ApiCtx>, q: Query<Q8364>) -> impl Into
         "BTC"  => &stobj.rank_sat,
         "HACD" => &stobj.rank_dia,
         _ => return api_error("param coin error"),
-    }.list();
+    }.as_list();
 
     let div: f64 = match coin.as_str() {
         "HAC"  => 100000000.0,
@@ -33,7 +33,7 @@ async fn ranking_top100(State(ctx): State<ApiCtx>, q: Query<Q8364>) -> impl Into
             break // end max 100
         }
         let a = &rtlist[i];
-        datalist.push((a.addr.readable(), a.amount.uint() as f64 / div));
+        datalist.push((a.addr.to_readable(), a.amount.uint() as f64 / div));
     }
 
     let data = jsondata!{

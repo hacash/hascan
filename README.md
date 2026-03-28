@@ -15,7 +15,7 @@ cargo build --release --no-default-features --features "db-leveldb-sys"
 
 
 # release
-RUSTFLAGS="$RUSTFLAGS -Awarnings" cargo build --release && cp ./target/release/hascan ./ && cp ./hascan ../fullnode/hascan_2025082701
+RUSTFLAGS="$RUSTFLAGS -Awarnings" cargo build --release && cp ./target/release/hascan ./ && cp ./hascan ../fullnode/hascan_2026032301
 
 
 ```

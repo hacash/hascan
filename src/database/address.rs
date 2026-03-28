@@ -21,7 +21,7 @@ pub fn record_addr_as_mut<'a>(dbtx: &mut DBTransaction, adrs: &'a mut AddressCac
 
 pub fn record_addr_id_ex(dbtx: &mut DBTransaction, adrs: &mut AddressCache, setting: &mut ScanSettings, 
     adrobj: &Address, blkts: u64) -> DBResult<(bool, i64, String)> {
-    let address = adrobj.readable();
+    let address = adrobj.to_readable();
     let new = true;
     let old = false;
     if let Some(adr) = adrs.get(&address) {

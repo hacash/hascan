@@ -14,13 +14,22 @@ impl BlkScaner {
 
     // another thread
     fn do_start(&self, mut wkr: Worker) {
+        use std::sync::mpsc::TryRecvError;
+
         let rlsfrx = self.rlsfrx.lock().unwrap().take().unwrap();
         loop {
             if wkr.quit() {
                 break;
             }
-            let Ok(stuff) = rlsfrx.recv() else {
-                break;
+            let stuff = match rlsfrx.try_recv() {
+                Ok(v) => v,
+                Err(TryRecvError::Empty) => {
+                    std::thread::sleep(Duration::from_millis(111));
+                    continue;
+                }
+                Err(TryRecvError::Disconnected) => {
+                    break;
+                }
             };
             // call toll
             let mut dbc = self.dbconn.lock().unwrap();
@@ -38,7 +47,6 @@ impl BlkScaner {
             };
         }
         println!("[Scaner] scan end.");
-        wkr.end(); // end
     }
 
 }

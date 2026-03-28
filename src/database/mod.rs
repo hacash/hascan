@@ -4,8 +4,7 @@ use rusqlite::{Connection, Transaction as DBTransaction, Result as DBResult};
 
 
 use field::*;
-use field::interface::*;
-use protocol::interface::*;
+use basis::interface::*;
 use protocol::action::*;
 use mint::action::*;
 
@@ -23,5 +22,4 @@ pub const OPTY_CH_CLOSE: u8 = 2; // channel close
 include!("init.rs");
 include!("address.rs");
 include!("transfer.rs");
-
 

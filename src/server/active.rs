@@ -11,7 +11,7 @@ async fn chain_active(State(ctx): State<ApiCtx>, _q: Query<Q8237>) -> impl IntoR
     // q_must!(q, coin, s!("HAC"));
 
     let bding = ctx.setting.lock().unwrap();
-    let rtlist = bding.chain_active.list();
+    let rtlist = bding.chain_active.as_list();
 
     // deal data
     let ll = rtlist.len();

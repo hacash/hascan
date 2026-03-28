@@ -28,7 +28,18 @@ fn query_coin_transfer(ctx: ApiCtx, q: Query<Q4396>) -> DBResult<JsonObject> {
     q_must!(q, both, s!(""));
     q_must!(q, limit, 15);
     q_must!(q, page, 1);
-    let start: u64 = (page - 1) * limit;
+    let errf = |e: String| {
+        Err(rusqlite::Error::InvalidParameterName(e))
+    };
+    if limit == 0 {
+        return errf(s!("param limit must > 0"))
+    }
+    if page == 0 {
+        return errf(s!("param page must > 0"))
+    }
+    let Some(start) = page.checked_sub(1).and_then(|p| p.checked_mul(limit)) else {
+        return errf(s!("param page/limit too large"))
+    };
 
     let mut addrs: HashMap<u64, String> = HashMap::new();
 
@@ -43,10 +54,6 @@ fn query_coin_transfer(ctx: ApiCtx, q: Query<Q4396>) -> DBResult<JsonObject> {
 
     let adrcond;
 
-    let errf = |e: String| {
-        Err(rusqlite::Error::InvalidParameterName(e))
-    };
-
     // from
     if from.len() > 0 {
         if let Err(e) = Address::from_readable(&from) {
@@ -60,7 +67,7 @@ fn query_coin_transfer(ctx: ApiCtx, q: Query<Q4396>) -> DBResult<JsonObject> {
     // to
     } else if to.len() > 0 {
         if let Err(e) = Address::from_readable(&to) {
-            return errf(format!("address {} format error: {}", &from, &e))
+            return errf(format!("address {} format error: {}", &to, &e))
         }
         let Some(to_aid) = query_addr_id(dbconn, &to)? else {
             return Ok(empty) // not find
@@ -70,7 +77,7 @@ fn query_coin_transfer(ctx: ApiCtx, q: Query<Q4396>) -> DBResult<JsonObject> {
     // both
     } else if both.len() > 0 {
         if let Err(e) = Address::from_readable(&both) {
-            return errf(format!("address {} format error: {}", &from, &e))
+            return errf(format!("address {} format error: {}", &both, &e))
         }
         let Some(both_aid) = query_addr_id(dbconn, &both)? else {
             return Ok(empty) // not find

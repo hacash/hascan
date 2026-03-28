@@ -1,6 +1,5 @@
 
-
-use protocol::interface::Scaner;
+use basis::interface::Scaner;
 
 
 mod database;
@@ -21,12 +20,12 @@ fn main() -> Rerr {
     let cnf = scaner::BlkScrConfig::new(&inicnf);
     let (settings, dbconn) = init_db(&cnf.datadir)?;
     let mut scaner = scaner::BlkScaner::new(cnf, settings, dbconn);
-    scaner.init(&inicnf).unwrap();
+    scaner.init(&inicnf)?;
 
     
 
     // start run
-    hacash::run_with_scaner(&cnfp, Box::new(scaner));
+    hacash::run_with_scaner(&cnfp, Box::new(scaner))?;
 
     Ok(())
 }

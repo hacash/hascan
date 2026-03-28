@@ -16,20 +16,20 @@ pub fn update_ranking(setting: &mut ScanSettings, adrs: &AddressCache, state: &C
         let sat = bls.satoshi.uint() as u64;
         let dia = bls.diamond.uint() as u64;
         // update
-        update_one_rank(setting.rank_zhu.as_mut(), &adr, zhu);
-        update_one_rank(setting.rank_sat.as_mut(), &adr, sat);
-        update_one_rank(setting.rank_dia.as_mut(), &adr, dia);
+        update_one_rank(&mut setting.rank_zhu, &adr, zhu);
+        update_one_rank(&mut setting.rank_sat, &adr, sat);
+        update_one_rank(&mut setting.rank_dia, &adr, dia);
     }
 
     // truncate to 200
     let maxl: usize = 200;
     macro_rules! truncate {
         ($p: ident) => { {
-            let mut zl = setting.$p.list().len();
+            let mut zl = setting.$p.as_list().len();
             if zl > maxl {
                 zl = maxl;
             }
-            setting.$p.as_mut().truncate(zl);
+            setting.$p.lists.truncate(zl);
             setting.$p.count = Uint1::from(zl as u8);
         } }
     }
@@ -43,7 +43,8 @@ pub fn update_ranking(setting: &mut ScanSettings, adrs: &AddressCache, state: &C
 }
 
 
-fn update_one_rank(rklist: &mut Vec<Balance>, adr: &Address, namt: u64) {
+fn update_one_rank(rklist: &mut BalanceRankingList, adr: &Address, namt: u64) {
+    let rklist = &mut rklist.lists;
     let nbls = Balance{addr: adr.clone(), amount: Uint8::from(namt)};
     // delete old
     rklist.retain(|x|x.addr!=*adr);

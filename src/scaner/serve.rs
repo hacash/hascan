@@ -12,8 +12,6 @@ impl BlkScaner {
         let rt = node::new_tokio_rt( true );
         rt.block_on(async move {
             crate::server::server_listen(cnf, setting, dbconn, wkr).await;
-            // close scan stuff sender
-            self.rlsftx.lock().unwrap().take();
         });
     }
 

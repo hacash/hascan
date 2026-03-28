@@ -30,9 +30,9 @@ combi_struct!{ ActiveItem,
     trszhu:  Uint4
     trssat:  Uint4
     trsdia:  Uint4
-    mvzhu:   Uint8 // HAC: ZHU
-    mvsat:   Uint8 // SAT
-    mvdia:   Uint3 // DIAMOND
+    mvzhu:   Uint16 // HAC: ZHU
+    mvsat:   Uint12 // SAT
+    mvdia:   Uint8  // DIAMOND
 }
 
 

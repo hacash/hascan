@@ -24,7 +24,18 @@ fn query_defi_operate(ctx: ApiCtx, q: Query<Q1856>) -> DBResult<JsonObject> {
     q_must!(q, both, s!(""));
     q_must!(q, limit, 15);
     q_must!(q, page, 1);
-    let start: u64 = (page - 1) * limit;
+    let errf = |e: String| {
+        Err(rusqlite::Error::InvalidParameterName(e))
+    };
+    if limit == 0 {
+        return errf(s!("param limit must > 0"))
+    }
+    if page == 0 {
+        return errf(s!("param page must > 0"))
+    }
+    let Some(start) = page.checked_sub(1).and_then(|p| p.checked_mul(limit)) else {
+        return errf(s!("param page/limit too large"))
+    };
 
     let mut addrs: HashMap<u64, String> = HashMap::new();
 
@@ -38,10 +49,6 @@ fn query_defi_operate(ctx: ApiCtx, q: Query<Q1856>) -> DBResult<JsonObject> {
     };
 
     let adrcond;
-
-    let errf = |e: String| {
-        Err(rusqlite::Error::InvalidParameterName(e))
-    };
 
     // relate address
     if both.len() > 0 {
@@ -78,7 +85,7 @@ fn query_defi_operate(ctx: ApiCtx, q: Query<Q1856>) -> DBResult<JsonObject> {
         addrs.insert(aid1, s!(""));
         addrs.insert(aid2, s!(""));
         // item
-        datalist.push((hei, aid1, aid2, kind, tarid.hex(), note));
+        datalist.push((hei, aid1, aid2, kind, tarid.to_hex(), note));
     }
     drop(qres);
     drop(stmt);

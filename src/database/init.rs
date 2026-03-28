@@ -61,7 +61,48 @@ pub fn create_tables(conn: &mut Connection) -> DBResult<()> {
         "CREATE INDEX IF NOT EXISTS acc2_id on defi_operate (aid1, aid2)", ()
     )?;
 
+    /* scan_status */
+    tx.execute(
+        "CREATE TABLE IF NOT EXISTS `scan_status` (
+            k                 TEXT PRIMARY KEY,
+            v                 INTEGER NOT NULL
+        )", ()
+    )?;
+
 
     
     tx.commit()
+}
+
+const SCAN_STATUS_HEIGHT_KEY: &str = "height";
+
+pub fn load_scan_height(conn: &Connection) -> DBResult<u64> {
+    let mut stmt = conn.prepare_cached("SELECT v FROM scan_status WHERE k = ?1")?;
+    if let Some(row) = stmt.query([SCAN_STATUS_HEIGHT_KEY])?.next()? {
+        return row.get(0)
+    }
+    Ok(0)
+}
+
+pub fn save_scan_height_conn(conn: &Connection, height: u64) -> DBResult<()> {
+    conn.execute(
+        "INSERT INTO scan_status (k, v) VALUES (?1, ?2)
+         ON CONFLICT(k) DO UPDATE SET v = excluded.v",
+        (SCAN_STATUS_HEIGHT_KEY, height),
+    )?;
+    Ok(())
+}
+
+pub fn save_scan_height_tx(tx: &mut DBTransaction, height: u64) -> DBResult<()> {
+    tx.execute(
+        "INSERT INTO scan_status (k, v) VALUES (?1, ?2)
+         ON CONFLICT(k) DO UPDATE SET v = excluded.v",
+        (SCAN_STATUS_HEIGHT_KEY, height),
+    )?;
+    Ok(())
+}
+
+pub fn load_max_account_id(conn: &Connection) -> DBResult<u64> {
+    let mut stmt = conn.prepare_cached("SELECT IFNULL(MAX(id), 0) FROM account")?;
+    stmt.query_row((), |row| row.get(0))
 }

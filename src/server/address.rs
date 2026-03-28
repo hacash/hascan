@@ -44,7 +44,7 @@ fn query_address_count(ctx: ApiCtx, q: Query<Q5363>) -> DBResult<JsonObject> {
     }
 
     // sql
-    let qrsql = format!("SELECT minted_diamond,block_reward,used_fee,timestamp FROM account WHERE address IN({})", addrids);
+    let qrsql = format!("SELECT id,address,minted_diamond,block_reward,used_fee,timestamp FROM account WHERE address IN({})", addrids);
 
     // load
     let mut datalist = Vec::with_capacity(addrs.len()); 
@@ -52,11 +52,15 @@ fn query_address_count(ctx: ApiCtx, q: Query<Q5363>) -> DBResult<JsonObject> {
     let mut stmt = dbconn.prepare(qrsql.as_str())?;
     let mut qres = stmt.query(())?;
     while let Some(row) = qres.next()? {
-        let minted_diamond: u64 = row.get(0).unwrap();
-        let block_reward: u64 = row.get(1).unwrap();
-        let used_fee: f64 = row.get(2).unwrap();
-        let timestamp: u64 = row.get(3).unwrap();
+        let id: u64 = row.get(0).unwrap();
+        let address: String = row.get(1).unwrap();
+        let minted_diamond: u64 = row.get(2).unwrap();
+        let block_reward: u64 = row.get(3).unwrap();
+        let used_fee: f64 = row.get(4).unwrap();
+        let timestamp: u64 = row.get(5).unwrap();
         datalist.push(jsondata!{
+            "id", id,
+            "address", address,
             "minted_diamond", minted_diamond,
             "block_reward", block_reward,
             "used_fee", used_fee,

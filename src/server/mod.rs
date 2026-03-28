@@ -16,7 +16,6 @@ use axum::{
 
 use sys::*;
 use server::*;
-use server::ctx::*;
 
 use field::*;
 
@@ -34,4 +33,3 @@ include!("cointrs.rs");
 include!("fiopts.rs");
 include!("address.rs");
 include!("server.rs");
-
