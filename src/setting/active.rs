@@ -1,23 +1,15 @@
-
-/**
-*
-*/
-pub fn update_chain_active(setting: &mut ScanSettings, adrs: &AddressCache, height: u64) -> Rerr {
+pub fn update_chain_active(setting: &mut ScanSettings, newadr: u32, height: u64) -> Rerr {
     let secc = record_current_active(setting, height);
-    // update
-    // new addr
-    let mut newadr = 0u32;
-    for (_, sto) in adrs {
-        if sto.timestamp > 0 {
-            newadr += 1; // addr is new
-        }
-    }
-    secc.newadr += newadr;
+    secc.newadr = Uint4::from(
+        secc.newadr
+            .uint()
+            .checked_add(newadr)
+            .ok_or_else(|| sys::Error::fault("hascan new address count overflow"))?,
+    );
     Ok(())
 }
 
-
-pub fn record_current_active<'a>(setting: &'a mut ScanSettings, height: u64) -> &'a mut ActiveItem {
+pub fn record_current_active(setting: &mut ScanSettings, height: u64) -> &mut ActiveItem {
     // defs
     let sechei: usize = 2000; // one week
     let maxsec: usize = 25; // half year
@@ -28,14 +20,17 @@ pub fn record_current_active<'a>(setting: &'a mut ScanSettings, height: u64) -> 
         (&mut chain_active.count, &mut chain_active.lists)
     };
 
-    let same_cursec = actives.first()
+    let same_cursec = actives
+        .first()
         .map(|item| item.secnum.uint() as u64 == cursec)
         .unwrap_or(false);
 
     if !same_cursec {
         // new
-        let mut acone = ActiveItem::default();
-        acone.secnum = Uint4::from(cursec as u32);
+        let acone = ActiveItem {
+            secnum: Uint4::from(cursec as u32),
+            ..Default::default()
+        };
         // create
         if actives.is_empty() {
             actives.push(acone.clone());

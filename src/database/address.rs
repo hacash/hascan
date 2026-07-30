@@ -2,11 +2,7 @@
 
 
 
-/**
-* return: is new, addr id
-*/
-
-
+// Returns whether the account is new, its numeric ID, and readable address.
 pub fn record_addr_id(dbtx: &mut DBTransaction, adrs: &mut AddressCache, setting: &mut ScanSettings, 
     adrobj: &Address, blkts: u64) -> DBResult<u64> {
         let (_, aid, _) = record_addr_id_ex(dbtx, adrs, setting, adrobj, blkts)?;
@@ -29,7 +25,7 @@ pub fn record_addr_id_ex(dbtx: &mut DBTransaction, adrs: &mut AddressCache, sett
     }
     // query from db
     let mut stmt = dbtx.prepare_cached("SELECT id,minted_diamond,block_reward,used_fee FROM account WHERE address = ?1")?;
-    while let Some(row) = stmt.query([&address])?.next()? {
+    if let Some(row) = stmt.query([&address])?.next()? {
         let aid: i64 = row.get(0)?;
         let asto = AddressSto {
             id: aid,
@@ -42,7 +38,13 @@ pub fn record_addr_id_ex(dbtx: &mut DBTransaction, adrs: &mut AddressCache, sett
         return Ok((old, aid, address)) // from cache
     }
     // create new account
-    setting.auto_inc_address_id += 1;
+    let next_address_id = setting
+        .auto_inc_address_id
+        .uint()
+        .checked_add(1)
+        .and_then(Uint5::from_checked)
+        .ok_or_else(|| db_overflow("address id"))?;
+    setting.auto_inc_address_id = next_address_id;
     let aaid = setting.auto_inc_address_id.uint() as i64;
     let asto = AddressSto {
         id: aaid,
@@ -63,9 +65,6 @@ pub fn record_addr_id_ex(dbtx: &mut DBTransaction, adrs: &mut AddressCache, sett
 }
 
 
-/**
-*
-*/
 pub fn insert_update_addr(dbtx: &mut DBTransaction, adrs: &AddressCache) -> DBResult<()> {
 
     // insert

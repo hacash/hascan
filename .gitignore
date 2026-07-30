@@ -6,7 +6,8 @@ hascan
 *.zip
 hascan_*
 
-hacash_*_data/
+hacash_*/
+hascan.*.ini
 
 
 

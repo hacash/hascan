@@ -1,31 +1,14 @@
-
-use basis::interface::Scaner;
-
-
-mod database;
-mod setting;
-mod server;
-mod scaner;
-
-
-include!("init.rs");
-
-
 fn main() -> Rerr {
+    use std::path::PathBuf;
+    use std::sync::Arc;
 
-    let cnfp = "./hascan.config.ini".to_string();
-    let inicnf = load_config(cnfp.clone());
-
-    // create scaner
-    let cnf = scaner::BlkScrConfig::new(&inicnf);
-    let (settings, dbconn) = init_db(&cnf.datadir)?;
-    let mut scaner = scaner::BlkScaner::new(cnf, settings, dbconn);
-    scaner.init(&inicnf)?;
-
-    
-
-    // start run
-    hacash::run_with_scaner(&cnfp, Box::new(scaner))?;
-
-    Ok(())
+    let config_path = std::env::args()
+        .nth(1)
+        .map(PathBuf::from)
+        .unwrap_or_else(|| PathBuf::from("hascan.config.ini"));
+    let ini = sys::load_config(&config_path)?;
+    let scaner = Arc::new(hascan::open(&ini)?);
+    app::Fullnode::open(&config_path, Some(scaner))?.run()
 }
+
+use sys::Rerr;

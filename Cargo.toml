@@ -4,29 +4,22 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-tokio = { version = "1.37.0", features = ["rt", "rt-multi-thread", "sync", "time", "io-util", "net", "macros"] }
-axum = "0.7.5"
-serde = "1.0.199"
 serde_json = "1.0.116"
 rusqlite = "0.32.1"
-# hacash = { git = "https://github.com/hacash/fullnode", package = "hacash"}
-hacash = { path = "../fullnodedev", package = "hacash", default-features = false }
-sys = { path = "../fullnodedev/sys" }
-field = { path = "../fullnodedev/field" }
-basis = { path = "../fullnodedev/basis" }
-# db = { path = "../fullnodedev/db" }
-protocol = { path = "../fullnodedev/protocol"}
-mint = { path = "../fullnodedev/mint" }
-node = { path = "../fullnodedev/node" }
-chain = { path = "../fullnodedev/chain"}
-server = { path = "../fullnodedev/server" }
+app = { path = "../fullnode/app", default-features = false }
+sys = { path = "../fullnode/sys" }
+field = { path = "../fullnode/field" }
+base = { path = "../fullnode/base" }
+protocol = { path = "../fullnode/protocol" }
+mint = { path = "../fullnode/mint" }
+vm = { path = "../fullnode/vm" }
 
 [features]
 default = ["db-leveldb-sys"]
-db-sled = ["hacash/db-sled"]
-db-rusty-leveldb = ["hacash/db-rusty-leveldb"]
-db-leveldb-sys = ["hacash/db-leveldb-sys"]
-db-rocksdb = ["hacash/db-rocksdb"]
+db-sled = ["app/db-sled"]
+db-rusty-leveldb = ["app/db-rusty-leveldb"]
+db-leveldb-sys = ["app/db-leveldb-sys"]
+db-rocksdb = ["app/db-rocksdb"]
 
 # [profile.release]
 # opt-level = 3       # Optimize for size.

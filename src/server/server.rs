@@ -4,7 +4,6 @@ pub async fn server_listen(cnf: BlkScrConfig,
     setting: Arc<Mutex<ScanSettings>>,
     dbconn: Arc<Mutex<Connection>>,
     mut wkr: Worker,
-    // diamovedate: Arc<Mutex<HashMap<DiamondName, u64>>>,
 ) {
     let port = cnf.listen;
     let addr = SocketAddr::from(([0, 0, 0, 0], port));
