@@ -7,7 +7,7 @@ include!("init.rs");
 
 pub fn open(ini: &sys::IniObj) -> sys::Ret<scaner::BlkScaner> {
     let cnf = scaner::BlkScrConfig::new(ini)?;
-    let (settings, dbconn) = init_db(&cnf.datadir)?;
+    let (settings, dbconn) = init_db(&cnf.data_dir)?;
     scaner::BlkScaner::new(cnf, settings, dbconn)
 }
 

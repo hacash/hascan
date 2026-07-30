@@ -154,7 +154,7 @@ impl BlkScaner {
         };
         self.refresh_ranking(view.as_ref(), addresses)?;
         let setting = self.inner.setting.lock().unwrap();
-        if let Err(e) = crate::save_setting(&self.cnf.datadir, &setting) {
+        if let Err(e) = crate::save_setting(&self.cnf.data_dir, &setting) {
             eprintln!("[hascan] settings mirror write failed: {e}");
         }
         Ok(())

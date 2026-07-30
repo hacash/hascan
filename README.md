@@ -56,6 +56,7 @@ find_nodes = false
 boot_nodes = 127.0.0.1:33311
 
 [server]
+enable = true
 listen_ip = 127.0.0.1
 listen_port = 18081
 debug_routes = false
@@ -71,14 +72,15 @@ enable = false
 enable = false
 
 [hascan]
-datadir = ./hacash_scan_data
+data_dir = ./hacash_scan_data
 synchronous = NORMAL
 ```
 
-`[hascan].datadir` stores `database.db3` and the compatibility mirror
+`[hascan].data_dir` stores `database.db3` and the compatibility mirror
 `settings.dat`. `synchronous` accepts SQLite's `OFF`, `NORMAL`, `FULL`, or
 `EXTRA` modes. There is no independent hascan listener: all explorer endpoints
-use `[server].listen_ip` and `[server].listen_port`.
+use `[server]`; set `enable = true` to serve them at `listen_ip` and
+`listen_port`.
 
 Do not point two hascan processes at the same explorer directory. Keep the
 chain and explorer directories on durable storage, and back up both when a

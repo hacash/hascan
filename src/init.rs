@@ -10,7 +10,7 @@ use field::*;
 use crate::database::*;
 use crate::setting::*;
 
-// const DATADIR: &str = "./hacash_scan_data";
+// const DATA_DIR: &str = "./hacash_scan_data";
 
 fn decode_settings(data: &[u8], source: &str) -> Ret<ScanSettings> {
     let (settings, used) = ScanSettings::decode(data)
@@ -25,22 +25,22 @@ fn decode_settings(data: &[u8], source: &str) -> Ret<ScanSettings> {
     Ok(settings)
 }
 
-pub fn init_db(datadir: &str) -> Ret<(ScanSettings, Connection)> {
+pub fn init_db(data_dir: &str) -> Ret<(ScanSettings, Connection)> {
 
     // create data dir
-    let datadir = datadir.to_owned();
-    fs::create_dir_all(&datadir)
-        .map_err(|e| format!("create hascan data dir {} failed: {e}", datadir))?;
+    let data_dir = data_dir.to_owned();
+    fs::create_dir_all(&data_dir)
+        .map_err(|e| format!("create hascan data dir {} failed: {e}", data_dir))?;
     // Read the compatibility file lazily. Once SQLite has a settings snapshot,
     // a partial mirror write must not prevent startup.
-    let stfn = datadir.to_owned() + "/settings.dat";
+    let stfn = data_dir.to_owned() + "/settings.dat";
     let legacy_settings = match fs::read(&stfn) {
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(None),
         Err(e) => Err(e),
         Ok(data) => Ok(Some(data)),
     };
     // open sqlite db
-    let mut dbconn = Connection::open(datadir.to_owned()+"/database.db3").map_err(|e|e.to_string())?;
+    let mut dbconn = Connection::open(data_dir.to_owned()+"/database.db3").map_err(|e|e.to_string())?;
     create_tables(&mut dbconn).map_err(|e|e.to_string())?;
 
     let mut settings = match load_scan_settings(&dbconn).map_err(|e| e.to_string())? {
@@ -86,7 +86,7 @@ pub fn init_db(datadir: &str) -> Ret<(ScanSettings, Connection)> {
 }
 
 
-pub fn save_setting(datadir: &str, setting: &ScanSettings) -> Rerr {
-    let stfn = datadir.to_owned() + "/settings.dat";
+pub fn save_setting(data_dir: &str, setting: &ScanSettings) -> Rerr {
+    let stfn = data_dir.to_owned() + "/settings.dat";
     fs::write(stfn, setting.encode()).map_err(|e| sys::Error::fault(e.to_string()))
 }
