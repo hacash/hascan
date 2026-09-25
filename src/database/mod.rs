@@ -3,7 +3,7 @@ use rusqlite::{Connection, Result as DBResult, Transaction as DBTransaction};
 use base::{Action, Transaction};
 use field::*;
 use mint::action_channel::{ChannelClose, ChannelOpen};
-use mint::action_diamond::DiamondMint;
+use mint::action_diamond::HacdMint;
 use mint::action_asset::AssetCreate;
 use protocol::action_std::*;
 use vm::action::{ContractDeploy, ContractUpdate};

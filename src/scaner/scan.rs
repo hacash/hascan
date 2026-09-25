@@ -1,5 +1,12 @@
 use std::collections::HashSet;
 
+/// `ScanerView::balances_at` reports `Ok(None)` while the engine holds its state
+/// unavailable during a durable-root move. Fast sync rolls the root every
+/// `unstable_block` blocks, so a single-shot query is expected to see a busy
+/// engine and must be retried instead of failing the indexer.
+const RANKING_SNAPSHOT_ATTEMPTS: usize = 20;
+const RANKING_SNAPSHOT_RETRY_DELAY: Duration = Duration::from_millis(50);
+
 fn validate_next_height(checkpoint: u64, height: u64) -> Rerr {
     let expected = checkpoint.saturating_add(1);
     if height < expected {
@@ -101,7 +108,7 @@ impl BlkScaner {
 
         loop {
             let history = view.block_history();
-            let stable_height = history.stable_height();
+            let stable_height = history.stable_height()?;
             let target = if self.cnf.stop_at_height == 0 {
                 stable_height
             } else {
@@ -124,7 +131,7 @@ impl BlkScaner {
                 .map_err(|e| sys::Error::fault(e.to_string()))?;
 
             for height in current + 1..=batch_end {
-                let block = history.block_at_height(height).ok_or_else(|| {
+                let block = history.block_at_height(height)?.ok_or_else(|| {
                     sys::Error::fault(format!("hascan cannot load stable block {}", height))
                 })?;
                 do_scan(&mut next_setting, &mut dbtx, &mut addresses, block.as_ref())?;
@@ -146,13 +153,26 @@ impl BlkScaner {
             }
         }
 
+        // Ranking balances come from the live state, which the engine marks
+        // unavailable for the whole duration of a durable-root move (every
+        // `unstable_block` blocks under fast sync). Merge the newly touched
+        // addresses into the retry queue and only drop them once the refresh
+        // really commits, so a busy snapshot never loses a ranking update.
         let addresses = if rebuild_ranking {
-            let dbconn = self.inner.dbconn.lock().unwrap();
-            load_all_account_addresses(&dbconn).map_err(|e| sys::Error::fault(e.to_string()))?
+            let mut all = {
+                let dbconn = self.inner.dbconn.lock().unwrap();
+                load_all_account_addresses(&dbconn).map_err(|e| sys::Error::fault(e.to_string()))?
+            };
+            all.extend(self.inner.pending_ranking.lock().unwrap().iter().cloned());
+            all
         } else {
-            touched.into_iter().collect()
+            let mut pending = self.inner.pending_ranking.lock().unwrap();
+            pending.extend(touched);
+            pending.iter().cloned().collect()
         };
-        self.refresh_ranking(view.as_ref(), addresses)?;
+        if self.refresh_ranking(view.as_ref(), addresses)? {
+            self.inner.pending_ranking.lock().unwrap().clear();
+        }
         let setting = self.inner.setting.lock().unwrap();
         if let Err(e) = crate::save_setting(&self.cnf.data_dir, &setting) {
             eprintln!("[hascan] settings mirror write failed: {e}");
@@ -160,31 +180,50 @@ impl BlkScaner {
         Ok(())
     }
 
-    fn refresh_ranking(&self, view: &dyn ScanerView, addresses: Vec<Address>) -> Rerr {
+    /// Refresh ranking balances from one validated state snapshot.
+    ///
+    /// `Ok(true)` means the ranking was persisted. `Ok(false)` means the engine
+    /// could not serve a snapshot because it was moving its durable root: that is
+    /// transient, so the caller keeps the addresses queued for a later attempt.
+    /// `Err` is reserved for real query/storage failures.
+    fn refresh_ranking(&self, view: &dyn ScanerView, addresses: Vec<Address>) -> Ret<bool> {
         if addresses.is_empty() {
-            return Ok(());
+            return Ok(true);
         }
         let history = view.block_history();
-        let height = history.stable_height();
-        let block = history.block_at_height(height).ok_or_else(|| {
-            sys::Error::fault(format!(
-                "hascan cannot load ranking snapshot block {}",
-                height
-            ))
-        })?;
-        let balances = view
-            .balances_at(&block.hash(), &addresses)
-            .ok_or_else(|| sys::Error::fault("hascan ranking snapshot unavailable"))?;
+        for attempt in 0..RANKING_SNAPSHOT_ATTEMPTS {
+            if attempt > 0 {
+                std::thread::sleep(RANKING_SNAPSHOT_RETRY_DELAY);
+            }
+            // Re-anchor on every attempt: the durable root advances while the
+            // state is unavailable, and the previous anchor is pruned from the
+            // fork tree once the root moves past it.
+            let height = history.stable_height()?;
+            let block = history.block_at_height(height)?.ok_or_else(|| {
+                sys::Error::fault(format!(
+                    "hascan cannot load ranking snapshot block {}",
+                    height
+                ))
+            })?;
+            let Some(balances) = view.balances_at(&block.hash(), &addresses)? else {
+                continue;
+            };
 
-        let mut dbconn = self.inner.dbconn.lock().unwrap();
-        let mut setting = self.inner.setting.lock().unwrap();
-        let mut next_setting = setting.clone();
-        update_ranking(&mut next_setting, addresses.into_iter().zip(balances))?;
-        let data = next_setting.encode();
-        let setting_height = next_setting.height.uint();
-        save_scan_settings_conn(&mut dbconn, setting_height, &data)
-            .map_err(|e| sys::Error::fault(e.to_string()))?;
-        *setting = next_setting;
-        Ok(())
+            let mut dbconn = self.inner.dbconn.lock().unwrap();
+            let mut setting = self.inner.setting.lock().unwrap();
+            let mut next_setting = setting.clone();
+            update_ranking(&mut next_setting, addresses.iter().cloned().zip(balances))?;
+            let data = next_setting.encode();
+            let setting_height = next_setting.height.uint();
+            save_scan_settings_conn(&mut dbconn, setting_height, &data)
+                .map_err(|e| sys::Error::fault(e.to_string()))?;
+            *setting = next_setting;
+            return Ok(true);
+        }
+        eprintln!(
+            "[hascan] ranking snapshot busy for {} address(es); queued for retry",
+            addresses.len()
+        );
+        Ok(false)
     }
 }

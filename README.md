@@ -124,6 +124,10 @@ SQLite transaction. Live notifications do no database work on the chain thread;
 the worker catches up from stable history instead.
 
 Ranking balances are read in batches from one validated stable-state snapshot.
+The engine withholds that snapshot while it moves its durable root (every
+`unstable_block` blocks during a fast sync), so the refresh retries with a short
+backoff and keeps the addresses queued until one attempt commits; a busy engine
+must not fail the indexer or drop a ranking update.
 The scanner currently records the same top-level Action set as the legacy
 hascan implementation; nested Action traversal is outside this integration.
 

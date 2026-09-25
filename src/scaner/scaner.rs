@@ -4,6 +4,10 @@ pub(crate) struct ScanInner {
     pub(crate) dbconn: Mutex<Connection>,
     pub(crate) setting: Mutex<ScanSettings>,
     pub(crate) last_error: Mutex<Option<String>>,
+    /// Addresses whose ranking balance changed but is not persisted yet. The
+    /// engine cannot serve a state snapshot while it moves its durable root, so
+    /// a failed refresh keeps the work queued instead of dropping it.
+    pending_ranking: Mutex<std::collections::HashSet<Address>>,
     view: Mutex<Option<Arc<dyn ScanerView>>>,
     catchup: Mutex<()>,
     wake_rx: Mutex<Option<Receiver<()>>>,
@@ -39,6 +43,7 @@ impl BlkScaner {
                 dbconn: Mutex::new(dbconn),
                 setting: Mutex::new(setting),
                 last_error: Mutex::new(None),
+                pending_ranking: Mutex::new(std::collections::HashSet::new()),
                 view: Mutex::new(None),
                 catchup: Mutex::new(()),
                 wake_rx: Mutex::new(Some(wake_rx)),
@@ -75,7 +80,7 @@ impl Scaner for BlkScaner {
         }
     }
 
-    fn on_block(&self, _block: BlockRef, view: Arc<dyn ScanerView>) {
+    fn on_block(&self, _block: BlockRef, view: Arc<dyn ScanerView>) -> Rerr {
         self.remember_view(view);
         match self.wake_tx.try_send(()) {
             Ok(()) | Err(TrySendError::Full(())) => {}
@@ -83,6 +88,7 @@ impl Scaner for BlkScaner {
                 self.set_error(Some("hascan worker channel disconnected".to_owned()));
             }
         }
+        Ok(())
     }
 
     fn api_services(&self) -> Vec<Arc<dyn ApiService>> {
@@ -110,7 +116,14 @@ impl Scaner for BlkScaner {
                     }
                     match receiver.recv_timeout(Duration::from_millis(250)) {
                         Ok(()) => {}
-                        Err(std::sync::mpsc::RecvTimeoutError::Timeout) => continue,
+                        Err(std::sync::mpsc::RecvTimeoutError::Timeout) => {
+                            // A ranking refresh deferred by a busy state snapshot
+                            // must not wait for the next stable block: catch-up is
+                            // usually the only caller and can idle for a long time.
+                            if scaner.inner.pending_ranking.lock().unwrap().is_empty() {
+                                continue;
+                            }
+                        }
                         Err(std::sync::mpsc::RecvTimeoutError::Disconnected) => break,
                     }
                     let view = scaner.inner.view.lock().unwrap().clone();

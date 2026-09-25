@@ -46,7 +46,11 @@ pub fn record_coin_transfer(dbtx: &mut DBTransaction, adrs: &mut AddressCache,
     let maddr = trs.main();
     let aptrs = trs.addrs();
     let (main_aid, main_acc) = record_addr_as_mut(dbtx, adrs, setting, &maddr, blkts)?;
-    main_acc.used_fee += trs.fee().to_unit_float(UNIT_MEI);
+    main_acc.used_fee += trs
+        .fee()
+        .to_unit_string("mei")
+        .parse::<f64>()
+        .map_err(|e| db_fault(format!("hascan fee conversion failed: {e}")))?;
     let actions = trs.actions();  
     for act in actions {
         record_one_action(
@@ -103,11 +107,11 @@ fn record_one_action(dbtx: &mut DBTransaction, adrs: &mut AddressCache, aptrs: &
 
     /******** Hacash ********/
 
-    if kid == HacToTrs::KIND {
+    if kid == TransferHacTo::KIND {
 
         let action = act
             .as_any()
-            .downcast_ref::<HacToTrs>()
+            .downcast_ref::<TransferHacTo>()
             .ok_or_else(|| db_fault("hascan action kind/type mismatch"))?;
         let zhu = action
             .hacash
@@ -131,11 +135,11 @@ fn record_one_action(dbtx: &mut DBTransaction, adrs: &mut AddressCache, aptrs: &
         add_uint4(&mut active.trszhu, 1, "HAC transfer count")?;
         add_uint16(&mut active.mvzhu, zhu, "HAC transfer amount")?;
 
-    } else if kid == HacFromTrs::KIND {
+    } else if kid == TransferHacFrom::KIND {
 
         let action = act
             .as_any()
-            .downcast_ref::<HacFromTrs>()
+            .downcast_ref::<TransferHacFrom>()
             .ok_or_else(|| db_fault("hascan action kind/type mismatch"))?;
         let zhu = action
             .hacash
@@ -159,11 +163,11 @@ fn record_one_action(dbtx: &mut DBTransaction, adrs: &mut AddressCache, aptrs: &
         add_uint4(&mut active.trszhu, 1, "HAC transfer count")?;
         add_uint16(&mut active.mvzhu, zhu, "HAC transfer amount")?;
 
-    } else if kid == HacFromToTrs::KIND {
+    } else if kid == TransferHacFromTo::KIND {
 
         let action = act
             .as_any()
-            .downcast_ref::<HacFromToTrs>()
+            .downcast_ref::<TransferHacFromTo>()
             .ok_or_else(|| db_fault("hascan action kind/type mismatch"))?;
         let zhu = action
             .hacash
@@ -194,9 +198,9 @@ fn record_one_action(dbtx: &mut DBTransaction, adrs: &mut AddressCache, aptrs: &
 
     /******** Satoshi ********/
 
-    } else if kid == SatToTrs::KIND {
+    } else if kid == TransferSatTo::KIND {
 
-        let action = action_ref!(SatToTrs);
+        let action = action_ref!(TransferSatTo);
         let to_addr = real_addr!(action.to);
         let to_aid = record_addr_id(dbtx, adrs, setting, &to_addr, blkts)?;
         let sat = action.satoshi.uint();
@@ -206,9 +210,9 @@ fn record_one_action(dbtx: &mut DBTransaction, adrs: &mut AddressCache, aptrs: &
         add_uint4(&mut active.trssat, 1, "SAT transfer count")?;
         add_uint12(&mut active.mvsat, sat, "SAT transfer amount")?;
 
-    } else if kid == SatFromTrs::KIND {
+    } else if kid == TransferSatFrom::KIND {
 
-        let action = action_ref!(SatFromTrs);
+        let action = action_ref!(TransferSatFrom);
         let from_addr = real_addr!(action.from);
         let from_aid = record_addr_id(dbtx, adrs, setting, &from_addr, blkts)?;
         let sat = action.satoshi.uint();
@@ -218,9 +222,9 @@ fn record_one_action(dbtx: &mut DBTransaction, adrs: &mut AddressCache, aptrs: &
         add_uint4(&mut active.trssat, 1, "SAT transfer count")?;
         add_uint12(&mut active.mvsat, sat, "SAT transfer amount")?;
 
-    } else if kid == SatFromToTrs::KIND {
+    } else if kid == TransferSatFromTo::KIND {
 
-        let action = action_ref!(SatFromToTrs);
+        let action = action_ref!(TransferSatFromTo);
         let from_addr = real_addr!(action.from);
         let to_addr = real_addr!(action.to);
         let from_aid = record_addr_id(dbtx, adrs, setting, &from_addr, blkts)?;
@@ -234,9 +238,9 @@ fn record_one_action(dbtx: &mut DBTransaction, adrs: &mut AddressCache, aptrs: &
     
     /******** Diamond ********/
 
-    } else if kid == DiaSingleTrs::KIND {
+    } else if kid == TransferHacdSingleTo::KIND {
 
-        let action = action_ref!(DiaSingleTrs);
+        let action = action_ref!(TransferHacdSingleTo);
         let to_addr = real_addr!(action.to);
         let to_aid = record_addr_id(dbtx, adrs, setting, &to_addr, blkts)?;
         let dia = 1_u64; // only one
@@ -249,9 +253,9 @@ fn record_one_action(dbtx: &mut DBTransaction, adrs: &mut AddressCache, aptrs: &
         // diamovedate.insert(action.diamond, blkts);
 
 
-    } else if kid == DiaFromTrs::KIND {
+    } else if kid == TransferHacdFrom::KIND {
 
-        let action = action_ref!(DiaFromTrs);
+        let action = action_ref!(TransferHacdFrom);
         let from_addr = real_addr!(action.from);
         let from_aid = record_addr_id(dbtx, adrs, setting, &from_addr, blkts)?;
         let dia = action.diamonds.length() as u64;
@@ -265,9 +269,9 @@ fn record_one_action(dbtx: &mut DBTransaction, adrs: &mut AddressCache, aptrs: &
         //     diamovedate.insert(*dia, blkts);
         // }
 
-    } else if kid == DiaToTrs::KIND {
+    } else if kid == TransferHacdTo::KIND {
 
-        let action = action_ref!(DiaToTrs);
+        let action = action_ref!(TransferHacdTo);
         let to_addr = real_addr!(action.to);
         let to_aid = record_addr_id(dbtx, adrs, setting, &to_addr, blkts)?;
         let dia = action.diamonds.length() as u64;
@@ -282,9 +286,9 @@ fn record_one_action(dbtx: &mut DBTransaction, adrs: &mut AddressCache, aptrs: &
         // }
 
 
-    } else if kid == DiaFromToTrs::KIND {
+    } else if kid == TransferHacdFromTo::KIND {
 
-        let action = action_ref!(DiaFromToTrs);
+        let action = action_ref!(TransferHacdFromTo);
         let from_addr = real_addr!(action.from);
         let from_aid = record_addr_id(dbtx, adrs, setting, &from_addr, blkts)?;
         let to_addr = real_addr!(action.to);
@@ -303,9 +307,9 @@ fn record_one_action(dbtx: &mut DBTransaction, adrs: &mut AddressCache, aptrs: &
 
     /******** Diamond mint ********/
 
-    } else if kid == DiamondMint::KIND {
+    } else if kid == HacdMint::KIND {
 
-        let action = action_ref!(DiamondMint);
+        let action = action_ref!(HacdMint);
         let miner_addr = &action.d.address;
         let (_, accobj) = record_addr_as_mut(dbtx, adrs, setting, miner_addr, blkts)?;
         accobj.minted_diamond += 1;
